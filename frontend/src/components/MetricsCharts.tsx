@@ -6,13 +6,13 @@ interface MetricsChartsProps {
   results?: ResultsData;
 }
 
-const COLORS = ["#10b981", "#06b6d4", "#f59e0b", "#f43f5e", "#8b5cf6", "#ec4899"];
+const PALETTE = ["#38bdf8", "#818cf8", "#34d399", "#fbbf24", "#f87171", "#a78bfa"];
 
 export const MetricsCharts: React.FC<MetricsChartsProps> = ({ results }) => {
   if (!results || !results.rows || results.rows.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500 font-mono text-sm">
-        No dataset rows to chart. Run a query returning rows to visualize distributions.
+      <div className="p-12 text-center text-ide-subtle font-mono text-xs border border-dashed border-ide-border rounded">
+        No dataset rows to chart. Execute a query that returns rows to visualize distributions.
       </div>
     );
   }
@@ -65,7 +65,9 @@ export const MetricsCharts: React.FC<MetricsChartsProps> = ({ results }) => {
   }));
 
   // If aggregated result (e.g. SELECT service, COUNT(*)), plot that directly!
-  const hasAggCount = columns.some((c) => c.toUpperCase().includes("COUNT") || c.toUpperCase().includes("AVG") || c.toUpperCase().includes("SUM"));
+  const hasAggCount = columns.some((c) =>
+    c.toUpperCase().includes("COUNT") || c.toUpperCase().includes("AVG") || c.toUpperCase().includes("SUM")
+  );
   let genericAggData: any[] = [];
   if (hasAggCount && rows.length > 0) {
     const labelCol = columns[0];
@@ -76,76 +78,95 @@ export const MetricsCharts: React.FC<MetricsChartsProps> = ({ results }) => {
     }));
   }
 
+  const customTooltipStyle = {
+    backgroundColor: "#10131c",
+    borderColor: "#232b3e",
+    borderRadius: "4px",
+    fontSize: "11px",
+    fontFamily: "monospace",
+    color: "#e2e8f0"
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between text-xs text-gray-400 border-b border-dark-border pb-3">
-        <span>Visual Analytics Engine: <code className="text-brand-cyan">Recharts 2.12 Declarative Charts</code></span>
-        <span>Analyzed Records: <strong className="text-white font-mono">{rows.length} rows</strong></span>
+    <div className="space-y-4 text-xs font-mono">
+      {/* Header Info Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ide-border pb-3 text-ide-muted text-[11px]">
+        <div className="flex items-center gap-2">
+          <span>Visual Distribution:</span>
+          <code className="text-status-info bg-ide-bg px-1.5 py-0.5 rounded border border-ide-border">
+            Recharts Quantitative Projection
+          </code>
+        </div>
+        <div className="flex items-center gap-2">
+          <span>Analyzed Rows:</span>
+          <span className="font-semibold text-white px-1.5 py-0.5 rounded bg-ide-card border border-ide-border">
+            {rows.length} rows
+          </span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Aggregated query chart if available */}
         {genericAggData.length > 0 ? (
-          <div className="bg-dark-card border border-dark-border rounded-xl p-4 shadow-sm space-y-3">
-            <h4 className="text-xs uppercase font-semibold text-gray-300 font-mono">
-              Query Aggregation Breakdown ({columns[1] || "Count"})
-            </h4>
-            <div className="h-64">
+          <div className="bg-ide-card border border-ide-border rounded p-3 space-y-2">
+            <div className="text-[11px] font-semibold text-ide-muted uppercase tracking-wider">
+              Query Aggregation Breakdown ({columns[1] || "Value"})
+            </div>
+            <div className="h-60">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={genericAggData}>
-                  <XAxis dataKey="name" stroke="#6b7280" fontSize={11} />
-                  <YAxis stroke="#6b7280" fontSize={11} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#111827", borderColor: "#374151", borderRadius: 8, fontSize: 12 }}
-                  />
-                  <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                  <XAxis dataKey="name" stroke="#475569" fontSize={10} fontFamily="monospace" />
+                  <YAxis stroke="#475569" fontSize={10} fontFamily="monospace" />
+                  <Tooltip contentStyle={customTooltipStyle} />
+                  <Bar dataKey="value" fill="#38bdf8" radius={[2, 2, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
         ) : serviceData.length > 0 ? (
-          <div className="bg-dark-card border border-dark-border rounded-xl p-4 shadow-sm space-y-3">
-            <h4 className="text-xs uppercase font-semibold text-gray-300 font-mono">Events by Originating Service</h4>
-            <div className="h-64">
+          <div className="bg-ide-card border border-ide-border rounded p-3 space-y-2">
+            <div className="text-[11px] font-semibold text-ide-muted uppercase tracking-wider">
+              Log Events by Originating Service
+            </div>
+            <div className="h-60">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={serviceData}>
-                  <XAxis dataKey="name" stroke="#6b7280" fontSize={11} />
-                  <YAxis stroke="#6b7280" fontSize={11} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#111827", borderColor: "#374151", borderRadius: 8, fontSize: 12 }}
-                  />
-                  <Bar dataKey="count" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                  <XAxis dataKey="name" stroke="#475569" fontSize={10} fontFamily="monospace" />
+                  <YAxis stroke="#475569" fontSize={10} fontFamily="monospace" />
+                  <Tooltip contentStyle={customTooltipStyle} />
+                  <Bar dataKey="count" fill="#818cf8" radius={[2, 2, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
         ) : null}
 
-        {/* Status Distribution Pie / Bar */}
+        {/* Status Distribution Pie */}
         {statusData.length > 0 && (
-          <div className="bg-dark-card border border-dark-border rounded-xl p-4 shadow-sm space-y-3">
-            <h4 className="text-xs uppercase font-semibold text-gray-300 font-mono">Status Code Distribution</h4>
-            <div className="h-64 flex items-center justify-center">
+          <div className="bg-ide-card border border-ide-border rounded p-3 space-y-2">
+            <div className="text-[11px] font-semibold text-ide-muted uppercase tracking-wider">
+              HTTP Status Code Proportions
+            </div>
+            <div className="h-60 flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={statusData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={4}
+                    innerRadius={45}
+                    outerRadius={75}
+                    paddingAngle={3}
                     dataKey="count"
                     label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    fontSize={11}
+                    fontSize={10}
+                    fontFamily="monospace"
                   >
                     {statusData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={PALETTE[index % PALETTE.length]} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#111827", borderColor: "#374151", borderRadius: 8, fontSize: 12 }}
-                  />
+                  <Tooltip contentStyle={customTooltipStyle} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -154,17 +175,17 @@ export const MetricsCharts: React.FC<MetricsChartsProps> = ({ results }) => {
 
         {/* Latency Distribution */}
         {hasNumericMetric && (
-          <div className="bg-dark-card border border-dark-border rounded-xl p-4 shadow-sm space-y-3 md:col-span-2">
-            <h4 className="text-xs uppercase font-semibold text-gray-300 font-mono">Response Time Latency Distribution</h4>
-            <div className="h-60">
+          <div className="bg-ide-card border border-ide-border rounded p-3 space-y-2 md:col-span-2">
+            <div className="text-[11px] font-semibold text-ide-muted uppercase tracking-wider">
+              Response Time Latency Distribution (ms)
+            </div>
+            <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={latencyBuckets}>
-                  <XAxis dataKey="range" stroke="#6b7280" fontSize={11} />
-                  <YAxis stroke="#6b7280" fontSize={11} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#111827", borderColor: "#374151", borderRadius: 8, fontSize: 12 }}
-                  />
-                  <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <XAxis dataKey="range" stroke="#475569" fontSize={10} fontFamily="monospace" />
+                  <YAxis stroke="#475569" fontSize={10} fontFamily="monospace" />
+                  <Tooltip contentStyle={customTooltipStyle} />
+                  <Bar dataKey="count" fill="#34d399" radius={[2, 2, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

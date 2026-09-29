@@ -1,5 +1,5 @@
-import React from "react";
-import { Play, RotateCcw, Wrench, Sparkles, Terminal } from "lucide-react";
+import React, { useRef } from "react";
+import { Play, Wrench, RotateCcw, Terminal } from "lucide-react";
 
 interface QueryEditorProps {
   query: string;
@@ -8,40 +8,8 @@ interface QueryEditorProps {
   onCompile: () => void;
   onClear: () => void;
   loading: boolean;
+  selectedDatasetName?: string;
 }
-
-const PRESET_QUERIES = [
-  {
-    name: "5xx Errors by Service",
-    description: "Aggregation + GROUP BY + Sorting",
-    query: `SELECT service, COUNT(*)\nFROM logs\nWHERE status >= 500\nGROUP BY service\nORDER BY COUNT(*) DESC;`
-  },
-  {
-    name: "High Latency (>200ms)",
-    description: "Projection + Float Filter + Limit",
-    query: `SELECT timestamp, service, path, response_time\nFROM logs\nWHERE response_time > 200.0\nORDER BY response_time DESC\nLIMIT 15;`
-  },
-  {
-    name: "Optimizer Demonstration",
-    description: "Constant Folding & Deduplication",
-    query: `SELECT path, AVG(response_time)\nFROM logs\nWHERE status = 200 + 300 AND status >= 500\nGROUP BY path\nORDER BY AVG(response_time) DESC;`
-  },
-  {
-    name: "Full Schema Scan",
-    description: "SELECT * wildcard",
-    query: `SELECT *\nFROM logs\nLIMIT 10;`
-  },
-  {
-    name: "Semantic Error: Unknown Col",
-    description: "Fails schema validation",
-    query: `SELECT non_existent_column\nFROM logs;`
-  },
-  {
-    name: "Semantic Error: Ungrouped Scalar",
-    description: "Fails GROUP BY validation",
-    query: `SELECT service, path, COUNT(*)\nFROM logs\nGROUP BY service;`
-  }
-];
 
 export const QueryEditor: React.FC<QueryEditorProps> = ({
   query,
@@ -49,8 +17,11 @@ export const QueryEditor: React.FC<QueryEditorProps> = ({
   onExecute,
   onCompile,
   onClear,
-  loading
+  loading,
+  selectedDatasetName
 }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
       e.preventDefault();
@@ -58,76 +29,75 @@ export const QueryEditor: React.FC<QueryEditorProps> = ({
     }
   };
 
+  const lineCount = Math.max(query.split("\n").length, 5);
+  const lineNumbers = Array.from({ length: lineCount }, (_, i) => i + 1);
+
   return (
-    <div className="bg-dark-card border border-dark-border rounded-2xl shadow-xl overflow-hidden flex flex-col">
-      {/* Editor Header */}
-      <div className="bg-dark-input/90 border-b border-dark-border px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+    <div className="bg-ide-panel border border-ide-border rounded-lg flex flex-col overflow-hidden shadow-sm">
+      {/* Editor Action Toolbar */}
+      <div className="bg-ide-surface border-b border-ide-border px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-2">
-          <Terminal size={16} className="text-brand-cyan" />
-          <span className="text-xs font-bold text-gray-200 uppercase tracking-wider font-mono">
-            LogQL Query Editor
+          <Terminal size={13} className="text-status-info" />
+          <span className="font-semibold font-mono text-[11px] text-ide-text uppercase tracking-wider">
+            Query Editor
           </span>
-          <span className="text-[10px] text-gray-500 font-mono hidden sm:inline">
-            (Press Ctrl+Enter to execute)
-          </span>
+          {selectedDatasetName && (
+            <span className="text-[10px] font-mono text-ide-muted px-1.5 py-0.2 rounded bg-ide-panel border border-ide-border">
+              FROM: {selectedDatasetName}
+            </span>
+          )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        {/* Controls */}
+        <div className="flex items-center gap-1.5">
           <button
             onClick={onClear}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white bg-dark-bg hover:bg-dark-border border border-dark-border transition"
+            title="Clear editor (Ctrl+L)"
+            className="px-2.5 py-1 rounded text-[11px] font-medium text-ide-muted hover:text-ide-text hover:bg-ide-hover border border-ide-border transition flex items-center gap-1"
           >
-            <RotateCcw size={13} /> Clear
+            <RotateCcw size={11} /> Clear
           </button>
           <button
             onClick={onCompile}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700/60 transition disabled:opacity-50"
+            title="Compile through Lexer, Parser, Semantic Analyzer, and Optimizer without running execution"
+            className="px-2.5 py-1 rounded text-[11px] font-medium text-token-keyword hover:text-white bg-ide-panel hover:bg-ide-hover border border-ide-borderLight transition flex items-center gap-1 disabled:opacity-50"
           >
-            <Wrench size={13} /> Compile Only
+            <Wrench size={11} /> Compile
           </button>
           <button
             onClick={onExecute}
             disabled={loading}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold text-gray-950 bg-gradient-to-r from-cyan-400 to-brand-cyan hover:from-cyan-300 hover:to-cyan-400 shadow-md shadow-cyan-900/30 transition disabled:opacity-50"
+            title="Execute query over dataset (Ctrl+Enter)"
+            className="px-3 py-1 rounded text-[11px] font-semibold bg-status-info text-white hover:bg-blue-600 transition flex items-center gap-1.5 shadow-sm disabled:opacity-50"
           >
-            <Play size={13} fill="currentColor" /> {loading ? "Running..." : "Run Query"}
+            <Play size={11} fill="currentColor" />
+            {loading ? "Executing..." : "Run"}
+            <span className="text-[9px] opacity-75 font-mono ml-0.5">Ctrl+↵</span>
           </button>
         </div>
       </div>
 
-      {/* Editor Textarea */}
-      <div className="relative">
+      {/* Editor Body with Line Numbers */}
+      <div className="flex bg-ide-bg font-mono text-xs min-h-[140px] max-h-[260px] overflow-hidden">
+        {/* Line Numbers Gutter */}
+        <div className="bg-ide-panel/80 text-ide-subtle py-3 px-2.5 text-right select-none border-r border-ide-border text-[11px] leading-relaxed">
+          {lineNumbers.map((num) => (
+            <div key={num}>{num}</div>
+          ))}
+        </div>
+
+        {/* Textarea */}
         <textarea
-          rows={6}
+          ref={textareaRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Enter a declarative LogQL query (e.g., SELECT service, COUNT(*) FROM logs WHERE status >= 500 GROUP BY service;)"
-          className="w-full bg-[#080d1a] text-gray-100 font-mono text-sm p-4 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 resize-y leading-relaxed selection:bg-indigo-600 selection:text-white"
+          placeholder="-- Write LogQL query here&#10;SELECT service, COUNT(*)&#10;FROM logs&#10;WHERE status >= 500&#10;GROUP BY service;"
           spellCheck={false}
+          className="flex-1 bg-transparent text-ide-text p-3 focus:outline-none resize-none leading-relaxed text-[12px] font-mono selection:bg-ide-active"
         />
-      </div>
-
-      {/* Preset Query Shortcuts */}
-      <div className="bg-dark-input/60 border-t border-dark-border/80 px-4 py-2.5 flex items-center gap-2 overflow-x-auto">
-        <span className="text-[11px] font-semibold text-gray-400 flex items-center gap-1 whitespace-nowrap">
-          <Sparkles size={13} className="text-amber-400" /> Query Presets:
-        </span>
-        <div className="flex items-center gap-2">
-          {PRESET_QUERIES.map((p, idx) => (
-            <button
-              key={idx}
-              onClick={() => setQuery(p.query)}
-              title={p.description}
-              className="text-[11px] font-mono whitespace-nowrap px-2.5 py-1 rounded-md bg-dark-bg hover:bg-dark-border border border-dark-border text-gray-300 hover:text-cyan-300 transition"
-            >
-              {p.name}
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );

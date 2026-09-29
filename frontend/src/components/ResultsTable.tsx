@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ResultsData } from "@/lib/api";
-import { Clock, Filter, Layers, ListOrdered } from "lucide-react";
+import { Clock, Download, Filter, Search, Layers, ListOrdered } from "lucide-react";
 
 interface ResultsTableProps {
   results?: ResultsData;
@@ -11,8 +11,8 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ results }) => {
 
   if (!results) {
     return (
-      <div className="p-8 text-center text-gray-500 font-mono text-sm">
-        No execution results yet. Run a query over a dataset to inspect returned rows.
+      <div className="p-12 text-center text-ide-muted font-mono text-xs">
+        No execution output available. Execute a query to view returned records.
       </div>
     );
   }
@@ -26,84 +26,115 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ results }) => {
     })
   );
 
+  const exportCSV = () => {
+    if (rows.length === 0) return;
+    const header = columns.join(",");
+    const csvRows = rows.map((r) =>
+      columns.map((c) => JSON.stringify(r[c] ?? "")).join(",")
+    );
+    const blob = new Blob([[header, ...csvRows].join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `logql_results_${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Metrics Header Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-dark-card border border-dark-border p-3 rounded-xl text-xs font-mono">
-        <div className="flex items-center gap-2 text-gray-300">
-          <Clock size={15} className="text-brand-cyan" />
-          <span>Execution: <strong className="text-white">{metrics.executionTimeMs.toFixed(3)} ms</strong></span>
+    <div className="space-y-3">
+      {/* Execution Metrics Bar */}
+      <div className="bg-ide-surface border border-ide-border rounded p-2.5 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono">
+        <div className="flex items-center gap-4 text-ide-muted">
+          <span className="flex items-center gap-1.5 text-ide-text">
+            <Clock size={13} className="text-status-info" />
+            <span>Time: <strong>{metrics.executionTimeMs.toFixed(3)} ms</strong></span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Layers size={13} />
+            <span>Scanned: <strong className="text-ide-text">{metrics.recordsScanned}</strong></span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Filter size={13} />
+            <span>Filtered: <strong className="text-ide-text">{metrics.recordsFiltered}</strong></span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <ListOrdered size={13} />
+            <span>Returned: <strong className="text-status-success font-bold">{metrics.recordsReturned}</strong></span>
+          </span>
         </div>
-        <div className="flex items-center gap-2 text-gray-300">
-          <Layers size={15} className="text-indigo-400" />
-          <span>Scanned: <strong className="text-white">{metrics.recordsScanned}</strong></span>
-        </div>
-        <div className="flex items-center gap-2 text-gray-300">
-          <Filter size={15} className="text-rose-400" />
-          <span>Filtered: <strong className="text-white">{metrics.recordsFiltered}</strong></span>
-        </div>
-        <div className="flex items-center gap-2 text-gray-300">
-          <ListOrdered size={15} className="text-emerald-400" />
-          <span>Returned: <strong className="text-emerald-400 font-bold">{metrics.recordsReturned}</strong></span>
+
+        {/* Export & Filter Actions */}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search size={12} className="absolute left-2.5 top-2 text-ide-subtle" />
+            <input
+              type="text"
+              placeholder="Search table rows..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-ide-bg border border-ide-border rounded pl-7 pr-2.5 py-1 text-[11px] text-ide-text placeholder-ide-subtle focus:outline-none focus:border-status-info w-48 font-mono"
+            />
+          </div>
+
+          <button
+            onClick={exportCSV}
+            disabled={rows.length === 0}
+            title="Export query results to CSV"
+            className="px-2.5 py-1 rounded bg-ide-panel hover:bg-ide-hover border border-ide-border text-[11px] text-ide-muted hover:text-ide-text transition flex items-center gap-1.5 disabled:opacity-40"
+          >
+            <Download size={12} /> CSV
+          </button>
         </div>
       </div>
 
-      {/* Search Input Bar */}
-      <div className="flex items-center justify-between gap-4">
-        <input
-          type="text"
-          placeholder="Filter returned rows..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-dark-input border border-dark-border rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 max-w-xs w-full font-mono"
-        />
-        <div className="text-xs text-gray-400 font-mono">
-          Showing {filteredRows.length} of {rows.length} rows
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="border border-dark-border rounded-xl overflow-hidden bg-dark-card shadow-sm">
-        <div className="max-h-[500px] overflow-x-auto overflow-y-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-dark-input/80 text-gray-400 uppercase tracking-wider sticky top-0 border-b border-dark-border z-10">
+      {/* Structured Table */}
+      <div className="border border-ide-border rounded overflow-hidden bg-ide-panel">
+        <div className="max-h-[460px] overflow-x-auto overflow-y-auto">
+          <table className="w-full text-left text-[11px] font-mono border-collapse">
+            <thead className="bg-ide-surface text-ide-muted uppercase tracking-wider sticky top-0 border-b border-ide-border select-none z-10 text-[10px]">
               <tr>
-                <th className="p-3 w-12 text-center text-gray-500">#</th>
+                <th className="py-2 px-3 w-10 text-center text-ide-subtle border-r border-ide-border">#</th>
                 {columns.map((col, idx) => (
-                  <th key={idx} className="p-3 font-semibold text-gray-200">
+                  <th key={idx} className="py-2 px-3 font-semibold text-ide-text border-r border-ide-border last:border-r-0">
                     {col}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-dark-border/50 text-gray-300">
+            <tbody className="divide-y divide-ide-border text-ide-text">
               {filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length + 1} className="p-8 text-center text-gray-500 italic">
-                    {rows.length === 0 ? "Query returned 0 matching records." : "No records match search filter."}
+                  <td colSpan={columns.length + 1} className="p-8 text-center text-ide-muted italic">
+                    {rows.length === 0 ? "Query returned 0 records." : "No records match active search filter."}
                   </td>
                 </tr>
               ) : (
                 filteredRows.map((row, rowIdx) => (
-                  <tr key={rowIdx} className="hover:bg-dark-bg/60 transition-colors">
-                    <td className="p-3 text-center text-gray-500 select-none">{rowIdx + 1}</td>
+                  <tr key={rowIdx} className="hover:bg-ide-hover/70 transition-colors">
+                    <td className="py-1.5 px-3 text-center text-ide-subtle border-r border-ide-border select-none">
+                      {rowIdx + 1}
+                    </td>
                     {columns.map((col, colIdx) => {
                       const val = row[col];
                       const isStatus = col === "status";
                       const isLevel = col === "level";
                       const isNumber = typeof val === "number";
 
-                      let badgeClass = "";
+                      let colorClass = "";
                       if (isStatus) {
-                        badgeClass = val >= 500 ? "text-rose-400 font-bold" : val >= 400 ? "text-amber-400" : "text-emerald-400";
+                        colorClass = val >= 500 ? "text-status-error font-bold" : val >= 400 ? "text-status-warning" : "text-status-success";
                       } else if (isLevel) {
-                        badgeClass = val === "ERROR" ? "text-rose-400 font-bold" : val === "WARN" ? "text-amber-400" : "text-sky-300";
+                        colorClass = val === "ERROR" || val === "FATAL" ? "text-status-error font-bold" : val === "WARN" ? "text-status-warning" : "text-token-keyword";
                       }
 
                       return (
-                        <td key={colIdx} className={`p-3 truncate max-w-xs ${badgeClass}`}>
+                        <td
+                          key={colIdx}
+                          className={`py-1.5 px-3 border-r border-ide-border last:border-r-0 truncate max-w-xs ${colorClass}`}
+                        >
                           {val === null || val === undefined ? (
-                            <span className="text-gray-600 italic">null</span>
+                            <span className="text-ide-subtle italic">null</span>
                           ) : isNumber && !Number.isInteger(val) ? (
                             val.toFixed(2)
                           ) : (

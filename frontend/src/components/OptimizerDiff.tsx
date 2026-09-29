@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Sparkles, ArrowRight, Zap, Minimize2, Filter, Layers } from "lucide-react";
+import { Cpu, ArrowRight, Zap, Minimize2, Filter, Layers, CheckCircle2 } from "lucide-react";
 import { OptimizationItem } from "@/lib/api";
 
 interface OptimizerDiffProps {
@@ -13,12 +13,12 @@ export const OptimizerDiff: React.FC<OptimizerDiffProps> = ({
   originalAst,
   optimizedAst,
 }) => {
-  const [activeTab, setActiveTab] = useState<"cards" | "astDiff">("cards");
+  const [viewMode, setViewMode] = useState<"passes" | "astDiff">("passes");
 
   if (!optimizations || optimizations.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500 font-mono text-sm">
-        No query optimizations applied for this query statement.
+      <div className="p-12 text-center text-ide-subtle font-mono text-xs border border-dashed border-ide-border rounded">
+        No query optimizations applied. All expressions are canonical, or query contains no reducible subtrees.
       </div>
     );
   }
@@ -26,75 +26,90 @@ export const OptimizerDiff: React.FC<OptimizerDiffProps> = ({
   const getRuleIcon = (rule: string) => {
     switch (rule) {
       case "ConstantFolding":
-        return <Zap size={16} className="text-amber-400" />;
+        return <Zap size={13} className="text-amber-400" />;
       case "DuplicatePredicateElimination":
-        return <Minimize2 size={16} className="text-brand-cyan" />;
+        return <Minimize2 size={13} className="text-status-info" />;
       case "PredicatePushdown":
-        return <Filter size={16} className="text-indigo-400" />;
+        return <Filter size={13} className="text-indigo-400" />;
       case "ProjectionReduction":
-        return <Layers size={16} className="text-emerald-400" />;
+        return <Layers size={13} className="text-status-success" />;
       default:
-        return <Sparkles size={16} className="text-purple-400" />;
+        return <Cpu size={13} className="text-ide-muted" />;
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between text-xs text-gray-400 border-b border-dark-border pb-3">
-        <span>Optimizer Source: <code className="text-brand-cyan">compiler/src/optimizer.cpp (4 Transformation Passes)</code></span>
+    <div className="space-y-4 text-xs font-mono">
+      {/* Header Info Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ide-border pb-3 text-ide-muted text-[11px]">
         <div className="flex items-center gap-2">
+          <span>Optimization Engine:</span>
+          <code className="text-status-info bg-ide-bg px-1.5 py-0.5 rounded border border-ide-border">
+            compiler/src/optimizer.cpp
+          </code>
+          <span className="text-ide-subtle">({optimizations.length} rule passes executed)</span>
+        </div>
+        <div className="flex items-center gap-1">
           <button
-            onClick={() => setActiveTab("cards")}
-            className={`px-3 py-1 rounded text-xs font-semibold transition ${
-              activeTab === "cards" ? "bg-indigo-600 text-white" : "bg-dark-card text-gray-400 hover:text-white"
+            onClick={() => setViewMode("passes")}
+            className={`px-2.5 py-1 rounded text-[11px] font-medium transition ${
+              viewMode === "passes"
+                ? "bg-ide-active text-white border border-ide-borderLight"
+                : "bg-ide-bg text-ide-muted hover:text-white"
             }`}
           >
-            Transformation Rules ({optimizations.length})
+            Transformation Passes ({optimizations.length})
           </button>
           <button
-            onClick={() => setActiveTab("astDiff")}
-            className={`px-3 py-1 rounded text-xs font-semibold transition ${
-              activeTab === "astDiff" ? "bg-indigo-600 text-white" : "bg-dark-card text-gray-400 hover:text-white"
+            onClick={() => setViewMode("astDiff")}
+            className={`px-2.5 py-1 rounded text-[11px] font-medium transition ${
+              viewMode === "astDiff"
+                ? "bg-ide-active text-white border border-ide-borderLight"
+                : "bg-ide-bg text-ide-muted hover:text-white"
             }`}
           >
-            Side-by-Side AST Diff
+            Side-by-Side AST IR
           </button>
         </div>
       </div>
 
-      {activeTab === "cards" ? (
-        <div className="grid grid-cols-1 gap-4">
+      {viewMode === "passes" ? (
+        <div className="space-y-3">
           {optimizations.map((opt, idx) => (
             <div
               key={idx}
-              className="bg-dark-card border border-dark-border rounded-xl p-4 shadow-sm hover:border-indigo-500/40 transition space-y-3"
+              className="bg-ide-card border border-ide-border rounded p-3 space-y-2.5"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between border-b border-ide-border/50 pb-2">
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-dark-bg border border-dark-border">
+                  <span className="p-1 rounded bg-ide-bg border border-ide-border">
                     {getRuleIcon(opt.rule)}
-                  </div>
+                  </span>
                   <div>
-                    <h4 className="text-sm font-bold text-white font-mono">{opt.rule}</h4>
-                    <p className="text-xs text-gray-400">{opt.description}</p>
+                    <span className="font-semibold text-white text-xs">{opt.rule}</span>
+                    <span className="text-ide-subtle text-[11px] ml-2 font-sans">{opt.description}</span>
                   </div>
                 </div>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-indigo-950/60 text-indigo-300 border border-indigo-700/50">
+                <span className="text-[10px] px-2 py-0.5 rounded bg-ide-bg border border-ide-border text-ide-muted">
                   Pass {idx + 1}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                <div className="bg-dark-input/80 border border-rose-900/30 rounded-lg p-3">
-                  <div className="text-[10px] uppercase font-bold text-rose-400 tracking-wider mb-1">Before Optimization</div>
-                  <pre className="text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre-wrap">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="bg-ide-bg border border-rose-900/30 rounded p-2.5">
+                  <div className="text-[10px] uppercase font-bold text-rose-400 tracking-wider mb-1 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400" /> Before Transformation
+                  </div>
+                  <pre className="text-[11px] text-ide-muted overflow-x-auto whitespace-pre-wrap">
                     {opt.before}
                   </pre>
                 </div>
 
-                <div className="bg-dark-input/80 border border-emerald-900/30 rounded-lg p-3">
-                  <div className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider mb-1">After Optimization</div>
-                  <pre className="text-xs font-mono text-emerald-300 font-semibold overflow-x-auto whitespace-pre-wrap">
+                <div className="bg-ide-bg border border-emerald-900/30 rounded p-2.5">
+                  <div className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider mb-1 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> After Transformation
+                  </div>
+                  <pre className="text-[11px] text-emerald-300 font-semibold overflow-x-auto whitespace-pre-wrap">
                     {opt.after}
                   </pre>
                 </div>
@@ -103,17 +118,23 @@ export const OptimizerDiff: React.FC<OptimizerDiffProps> = ({
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Raw Parser AST</h4>
-            <pre className="bg-dark-input/80 border border-dark-border rounded-xl p-4 text-xs font-mono text-gray-300 max-h-[500px] overflow-y-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <div className="text-[11px] font-semibold text-ide-muted uppercase tracking-wider flex items-center justify-between">
+              <span>Canonical Parser AST</span>
+              <span className="text-[10px] text-ide-subtle font-normal">Pre-Optimization</span>
+            </div>
+            <pre className="bg-ide-bg border border-ide-border rounded p-3 text-[11px] text-ide-muted max-h-[500px] overflow-y-auto leading-relaxed">
               {JSON.stringify(originalAst, null, 2)}
             </pre>
           </div>
 
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Optimized AST (Post-Passes)</h4>
-            <pre className="bg-dark-input/80 border border-emerald-900/40 rounded-xl p-4 text-xs font-mono text-emerald-300 max-h-[500px] overflow-y-auto">
+          <div className="space-y-1.5">
+            <div className="text-[11px] font-semibold text-status-success uppercase tracking-wider flex items-center justify-between">
+              <span>Optimized AST IR</span>
+              <span className="text-[10px] text-emerald-500/70 font-normal">Post-Transformation</span>
+            </div>
+            <pre className="bg-ide-bg border border-emerald-900/30 rounded p-3 text-[11px] text-emerald-300 max-h-[500px] overflow-y-auto leading-relaxed">
               {JSON.stringify(optimizedAst, null, 2)}
             </pre>
           </div>
