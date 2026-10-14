@@ -36,6 +36,13 @@ std::vector<logql::LogRecord> loadDataset(const std::string& path) {
     std::regex syslogRegex(R"regex(^([A-Za-z]{3}\s+\d+\s+\d+:\d+:\d+)\s+(\S+)\s+(\S+)\[(\d+)\]:\s+(\w+)\s+\[(\d+)\]\s+(.*)$)regex");
 
     while (std::getline(file, line)) {
+        while (!line.empty() && (line.back() == '\r' || line.back() == ' ' || line.back() == '\t')) {
+            line.pop_back();
+        }
+        size_t start = line.find_first_not_of(" \t");
+        if (start != std::string::npos && start > 0) {
+            line = line.substr(start);
+        }
         if (line.empty()) continue;
 
         // Try JSON Lines

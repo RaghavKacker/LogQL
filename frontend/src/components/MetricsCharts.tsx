@@ -6,7 +6,7 @@ interface MetricsChartsProps {
   results?: ResultsData;
 }
 
-const PALETTE = ["#38bdf8", "#818cf8", "#34d399", "#fbbf24", "#f87171", "#a78bfa"];
+const PALETTE = ["#7fa1c4", "#72b192", "#9b8cb8", "#cfa058", "#db8686", "#6ea8a3"];
 
 export const MetricsCharts: React.FC<MetricsChartsProps> = ({ results }) => {
   if (!results || !results.rows || results.rows.length === 0) {
@@ -79,72 +79,69 @@ export const MetricsCharts: React.FC<MetricsChartsProps> = ({ results }) => {
   }
 
   const customTooltipStyle = {
-    backgroundColor: "#10131c",
-    borderColor: "#232b3e",
-    borderRadius: "4px",
+    backgroundColor: "#18202e",
+    borderColor: "#2d364a",
+    borderRadius: "8px",
     fontSize: "11px",
     fontFamily: "monospace",
-    color: "#e2e8f0"
+    color: "#dde4ee"
   };
 
   return (
     <div className="space-y-4 text-xs font-mono">
-      {/* Header Info Bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ide-border pb-3 text-ide-muted text-[11px]">
         <div className="flex items-center gap-2">
           <span>Visual Distribution:</span>
-          <code className="text-status-info bg-ide-bg px-1.5 py-0.5 rounded border border-ide-border">
+          <code className="text-[#7fa1c4] bg-ide-bg px-2 py-0.5 rounded border border-ide-border">
             Recharts Quantitative Projection
           </code>
         </div>
         <div className="flex items-center gap-2">
           <span>Analyzed Rows:</span>
-          <span className="font-semibold text-white px-1.5 py-0.5 rounded bg-ide-card border border-ide-border">
+          <span className="font-semibold text-slate-100 px-2 py-0.5 rounded bg-ide-panel border border-ide-border">
             {rows.length} rows
           </span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Aggregated query chart if available */}
         {genericAggData.length > 0 ? (
-          <div className="bg-ide-card border border-ide-border rounded p-3 space-y-2">
-            <div className="text-[11px] font-semibold text-ide-muted uppercase tracking-wider">
+          <div className="bg-ide-panel border border-ide-border rounded-xl p-3.5 space-y-2 shadow-sm">
+            <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
               Query Aggregation Breakdown ({columns[1] || "Value"})
             </div>
             <div className="h-60">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={genericAggData}>
-                  <XAxis dataKey="name" stroke="#475569" fontSize={10} fontFamily="monospace" />
-                  <YAxis stroke="#475569" fontSize={10} fontFamily="monospace" />
+                  <XAxis dataKey="name" stroke="#617188" fontSize={10} fontFamily="monospace" />
+                  <YAxis stroke="#617188" fontSize={10} fontFamily="monospace" />
                   <Tooltip contentStyle={customTooltipStyle} />
-                  <Bar dataKey="value" fill="#38bdf8" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="value" fill="#7fa1c4" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
         ) : serviceData.length > 0 ? (
-          <div className="bg-ide-card border border-ide-border rounded p-3 space-y-2">
-            <div className="text-[11px] font-semibold text-ide-muted uppercase tracking-wider">
+          <div className="bg-ide-panel border border-ide-border rounded-xl p-3.5 space-y-2 shadow-sm">
+            <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
               Log Events by Originating Service
             </div>
             <div className="h-60">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={serviceData}>
-                  <XAxis dataKey="name" stroke="#475569" fontSize={10} fontFamily="monospace" />
-                  <YAxis stroke="#475569" fontSize={10} fontFamily="monospace" />
+                  <XAxis dataKey="name" stroke="#617188" fontSize={10} fontFamily="monospace" />
+                  <YAxis stroke="#617188" fontSize={10} fontFamily="monospace" />
                   <Tooltip contentStyle={customTooltipStyle} />
-                  <Bar dataKey="count" fill="#818cf8" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="count" fill="#9b8cb8" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
         ) : null}
 
-        {/* Status Distribution Pie */}
         {statusData.length > 0 && (
-          <div className="bg-ide-card border border-ide-border rounded p-3 space-y-2">
-            <div className="text-[11px] font-semibold text-ide-muted uppercase tracking-wider">
+          <div className="bg-ide-panel border border-ide-border rounded-xl p-3.5 space-y-2 shadow-sm">
+            <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
               HTTP Status Code Proportions
             </div>
             <div className="h-60 flex items-center justify-center">
@@ -173,19 +170,18 @@ export const MetricsCharts: React.FC<MetricsChartsProps> = ({ results }) => {
           </div>
         )}
 
-        {/* Latency Distribution */}
         {hasNumericMetric && (
-          <div className="bg-ide-card border border-ide-border rounded p-3 space-y-2 md:col-span-2">
-            <div className="text-[11px] font-semibold text-ide-muted uppercase tracking-wider">
+          <div className="bg-ide-panel border border-ide-border rounded-xl p-3.5 space-y-2 md:col-span-2 shadow-sm">
+            <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
               Response Time Latency Distribution (ms)
             </div>
             <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={latencyBuckets}>
-                  <XAxis dataKey="range" stroke="#475569" fontSize={10} fontFamily="monospace" />
-                  <YAxis stroke="#475569" fontSize={10} fontFamily="monospace" />
+                  <XAxis dataKey="range" stroke="#617188" fontSize={10} fontFamily="monospace" />
+                  <YAxis stroke="#617188" fontSize={10} fontFamily="monospace" />
                   <Tooltip contentStyle={customTooltipStyle} />
-                  <Bar dataKey="count" fill="#34d399" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="count" fill="#72b192" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

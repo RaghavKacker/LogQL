@@ -11,32 +11,32 @@ const config: Config = {
     extend: {
       colors: {
         ide: {
-          bg: "#0c0e14",
-          sidebar: "#10131c",
-          panel: "#141824",
-          surface: "#191f2e",
-          border: "#232b3e",
-          borderLight: "#323d57",
-          hover: "#1f2638",
-          active: "#252e42",
-          text: "#e6edf3",
-          muted: "#8b949e",
-          subtle: "#5a6578"
+          bg: "#10141d",
+          sidebar: "#141a26",
+          panel: "#18202e",
+          surface: "#1f283a",
+          border: "#28344b",
+          borderLight: "#354461",
+          hover: "#222c3e",
+          active: "#4b678c",
+          text: "#dde4ee",
+          muted: "#8e9eb3",
+          subtle: "#5f6f85"
         },
         token: {
-          keyword: "#79c0ff",
-          ident: "#e6edf3",
-          string: "#a5d6ff",
-          number: "#ffa657",
-          func: "#d2a8ff",
-          op: "#ff7b72",
-          comment: "#8b949e"
+          keyword: "#7ea3cc",
+          ident: "#dde4ee",
+          string: "#73b098",
+          number: "#cca268",
+          func: "#a392bf",
+          op: "#84a98c",
+          comment: "#6b7c93"
         },
         status: {
-          success: "#3fb950",
-          warning: "#d29922",
-          error: "#f85149",
-          info: "#58a6ff"
+          success: "#6ea88f",
+          warning: "#cca268",
+          error: "#c97373",
+          info: "#759bc2"
         }
       },
       fontFamily: {

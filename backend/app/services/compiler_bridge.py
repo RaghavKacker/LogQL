@@ -2,7 +2,7 @@ import subprocess
 import json
 import os
 from typing import Dict, Any, Optional
-from ..config import COMPILER_CLI_PATH
+from ..config import COMPILER_CLI_PATH, BASE_DIR
 
 class CompilerBridge:
     @staticmethod
@@ -21,10 +21,11 @@ class CompilerBridge:
         # Ensure environment PATH has compiler dependencies if on Windows
         env = os.environ.copy()
         if os.name == "nt":
-            # Add mingw bin paths if present
-            winlibs_bin = r"C:\Users\ragha\AppData\Local\Microsoft\WinGet\Packages\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\mingw64\bin"
-            if os.path.exists(winlibs_bin):
-                env["PATH"] = winlibs_bin + ";" + env.get("PATH", "")
+            local_bin = str(BASE_DIR / "w64devkit" / "bin")
+            tools_bin = str(BASE_DIR / "tools" / "winflexbison")
+            extra_paths = [p for p in [local_bin, tools_bin] if os.path.exists(p)]
+            if extra_paths:
+                env["PATH"] = ";".join(extra_paths) + ";" + env.get("PATH", "")
 
         try:
             process = subprocess.run(

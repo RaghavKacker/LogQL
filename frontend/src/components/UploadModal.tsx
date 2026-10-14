@@ -5,7 +5,7 @@ import { Upload, X, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUploadSuccess: () => void;
+  onUploadSuccess: (newDatasetId?: string) => void;
 }
 
 export const UploadModal: React.FC<UploadModalProps> = ({
@@ -35,7 +35,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       if (res.success) {
         setFile(null);
         setRawText("");
-        onUploadSuccess();
+        onUploadSuccess(res.datasetId);
         onClose();
       } else {
         setError(res.error || "Failed to parse uploaded log dataset.");
@@ -53,7 +53,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         {/* Header */}
         <div className="px-4 py-3 border-b border-ide-border flex items-center justify-between">
           <div className="flex items-center gap-2 font-semibold">
-            <Upload size={14} className="text-status-info" />
+            <Upload size={14} className="text-[#7fa1c4]" />
             <span>Ingest Custom Log Dataset</span>
           </div>
           <button
@@ -73,13 +73,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({
           </p>
 
           {error && (
-            <div className="p-2.5 rounded bg-status-error/10 border border-status-error/30 text-status-error flex items-start gap-2 text-[11px]">
-              <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+            <div className="p-2.5 rounded bg-[#241a1c] border border-[#4a2b2f] text-[#db8686] flex items-start gap-2 text-[11px]">
+              <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-[#db8686]" />
               <span>{error}</span>
             </div>
           )}
 
-          {/* File Input */}
           <div className="space-y-1.5">
             <label className="font-semibold text-ide-text text-[11px]">Select File (.log, .jsonl, .txt):</label>
             <input
@@ -96,7 +95,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             <div className="flex-1 h-px bg-ide-border" />
           </div>
 
-          {/* Raw Text Input */}
           <div className="space-y-1.5">
             <label className="font-semibold text-ide-text text-[11px]">Raw Log Records:</label>
             <textarea
@@ -104,11 +102,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
               placeholder={`{"timestamp": "2026-09-28T10:00:00Z", "service": "auth-service", "level": "ERROR", "status": 500, "response_time": 140.2, "message": "Connection timeout"}`}
-              className="w-full bg-ide-bg border border-ide-border rounded p-2.5 font-mono text-[11px] text-ide-text placeholder-ide-subtle focus:outline-none focus:border-status-info resize-none"
+              className="w-full bg-ide-bg border border-ide-border rounded p-2.5 font-mono text-[11px] text-ide-text placeholder-ide-subtle focus:outline-none focus:border-[#4f6b94] resize-none"
             />
           </div>
 
-          {/* Footer Actions */}
           <div className="pt-2 flex items-center justify-end gap-2 border-t border-ide-border">
             <button
               type="button"
@@ -121,7 +118,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="px-3 py-1.5 rounded font-semibold bg-status-info text-white hover:bg-blue-600 transition disabled:opacity-50 flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded font-semibold bg-[#486588] hover:bg-[#55769d] text-white transition disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
             >
               {loading ? "Ingesting..." : "Ingest Dataset"}
             </button>

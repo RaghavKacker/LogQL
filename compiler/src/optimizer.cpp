@@ -176,6 +176,24 @@ std::unique_ptr<ExprNode> QueryOptimizer::eliminateDuplicates(std::unique_ptr<Ex
                     }
                 }
             }
+
+            // Identity folding: A OR TRUE -> TRUE, A OR FALSE -> A
+            if (binOp->op == "OR") {
+                if (auto* rLit = dynamic_cast<LiteralNode*>(binOp->right.get())) {
+                    if (rLit->value.getType() == DataType::TYPE_BOOL) {
+                        changed = true;
+                        if (rLit->value.asBool()) return std::make_unique<LiteralNode>(true);
+                        return std::move(binOp->left);
+                    }
+                }
+                if (auto* lLit = dynamic_cast<LiteralNode*>(binOp->left.get())) {
+                    if (lLit->value.getType() == DataType::TYPE_BOOL) {
+                        changed = true;
+                        if (lLit->value.asBool()) return std::make_unique<LiteralNode>(true);
+                        return std::move(binOp->right);
+                    }
+                }
+            }
         }
     }
 

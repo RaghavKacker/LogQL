@@ -48,11 +48,11 @@ std::vector<logql::Token> g_scannedTokens;
 }
 
 /* Terminals / Tokens */
-%token <str_val> KEYWORD_SELECT KEYWORD_FROM KEYWORD_WHERE KEYWORD_GROUP KEYWORD_BY
-%token <str_val> KEYWORD_ORDER KEYWORD_ASC KEYWORD_DESC KEYWORD_LIMIT KEYWORD_DISTINCT KEYWORD_AS
-%token <str_val> KEYWORD_AND KEYWORD_OR KEYWORD_NOT
-%token <str_val> KEYWORD_COUNT KEYWORD_MIN KEYWORD_MAX KEYWORD_AVG KEYWORD_SUM
-%token <str_val> KEYWORD_TRUE KEYWORD_FALSE KEYWORD_NULL
+%token KEYWORD_SELECT KEYWORD_FROM KEYWORD_WHERE KEYWORD_GROUP KEYWORD_BY
+%token KEYWORD_ORDER KEYWORD_ASC KEYWORD_DESC KEYWORD_LIMIT KEYWORD_DISTINCT KEYWORD_AS
+%token KEYWORD_AND KEYWORD_OR KEYWORD_NOT
+%token KEYWORD_COUNT KEYWORD_MIN KEYWORD_MAX KEYWORD_AVG KEYWORD_SUM
+%token KEYWORD_TRUE KEYWORD_FALSE KEYWORD_NULL
 
 %token <str_val> IDENTIFIER
 %token <int_val> INT_LITERAL
@@ -332,6 +332,30 @@ OrderItemList:
         $1->push_back(std::move(item));
         $$ = $1;
     }
+    | OrderItemList COMMA FunctionCall
+    {
+        logql::OrderByItem item;
+        item.expr = std::unique_ptr<logql::ExprNode>($3);
+        item.ascending = true;
+        $1->push_back(std::move(item));
+        $$ = $1;
+    }
+    | OrderItemList COMMA FunctionCall KEYWORD_ASC
+    {
+        logql::OrderByItem item;
+        item.expr = std::unique_ptr<logql::ExprNode>($3);
+        item.ascending = true;
+        $1->push_back(std::move(item));
+        $$ = $1;
+    }
+    | OrderItemList COMMA FunctionCall KEYWORD_DESC
+    {
+        logql::OrderByItem item;
+        item.expr = std::unique_ptr<logql::ExprNode>($3);
+        item.ascending = false;
+        $1->push_back(std::move(item));
+        $$ = $1;
+    }
     ;
 
 LimitClause:
@@ -403,9 +427,9 @@ Predicate:
     {
         $$ = new logql::BinaryOpNode(">=", std::unique_ptr<logql::ExprNode>($1), std::unique_ptr<logql::ExprNode>($3));
     }
-    | LPAREN Expression RPAREN
+    | PrimaryExpr
     {
-        $$ = $2;
+        $$ = $1;
     }
     ;
 

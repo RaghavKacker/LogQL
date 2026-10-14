@@ -23,9 +23,23 @@ void recordToken(logql::TokenType type, const char* text) {
 }
 
 char* unquote(const char* s, int len) {
-    char* buf = (char*)malloc(len - 1);
-    memcpy(buf, s + 1, len - 2);
-    buf[len - 2] = '\0';
+    char* buf = (char*)malloc(len);
+    int j = 0;
+    for (int i = 1; i < len - 1; ++i) {
+        if (s[i] == '\\' && i + 1 < len - 1) {
+            i++;
+            if (s[i] == 'n') buf[j++] = '\n';
+            else if (s[i] == 't') buf[j++] = '\t';
+            else if (s[i] == 'r') buf[j++] = '\r';
+            else if (s[i] == '\\') buf[j++] = '\\';
+            else if (s[i] == '\'') buf[j++] = '\'';
+            else if (s[i] == '\"') buf[j++] = '\"';
+            else buf[j++] = s[i];
+        } else {
+            buf[j++] = s[i];
+        }
+    }
+    buf[j] = '\0';
     return buf;
 }
 
@@ -64,31 +78,31 @@ WS          [ \t\r]+
 
 "--"[^\n]*      { /* single-line comment */ }
 
-"SELECT"        { recordToken(logql::TokenType::KEYWORD_SELECT, yytext); yylval.str_val = strdup(yytext); return KEYWORD_SELECT; }
-"FROM"          { recordToken(logql::TokenType::KEYWORD_FROM, yytext); yylval.str_val = strdup(yytext); return KEYWORD_FROM; }
-"WHERE"         { recordToken(logql::TokenType::KEYWORD_WHERE, yytext); yylval.str_val = strdup(yytext); return KEYWORD_WHERE; }
-"GROUP"         { recordToken(logql::TokenType::KEYWORD_GROUP, yytext); yylval.str_val = strdup(yytext); return KEYWORD_GROUP; }
-"BY"            { recordToken(logql::TokenType::KEYWORD_BY, yytext); yylval.str_val = strdup(yytext); return KEYWORD_BY; }
-"ORDER"         { recordToken(logql::TokenType::KEYWORD_ORDER, yytext); yylval.str_val = strdup(yytext); return KEYWORD_ORDER; }
-"ASC"           { recordToken(logql::TokenType::KEYWORD_ASC, yytext); yylval.str_val = strdup(yytext); return KEYWORD_ASC; }
-"DESC"          { recordToken(logql::TokenType::KEYWORD_DESC, yytext); yylval.str_val = strdup(yytext); return KEYWORD_DESC; }
-"LIMIT"         { recordToken(logql::TokenType::KEYWORD_LIMIT, yytext); yylval.str_val = strdup(yytext); return KEYWORD_LIMIT; }
-"DISTINCT"      { recordToken(logql::TokenType::KEYWORD_DISTINCT, yytext); yylval.str_val = strdup(yytext); return KEYWORD_DISTINCT; }
-"AS"            { recordToken(logql::TokenType::KEYWORD_AS, yytext); yylval.str_val = strdup(yytext); return KEYWORD_AS; }
+"SELECT"        { recordToken(logql::TokenType::KEYWORD_SELECT, yytext); return KEYWORD_SELECT; }
+"FROM"          { recordToken(logql::TokenType::KEYWORD_FROM, yytext); return KEYWORD_FROM; }
+"WHERE"         { recordToken(logql::TokenType::KEYWORD_WHERE, yytext); return KEYWORD_WHERE; }
+"GROUP"         { recordToken(logql::TokenType::KEYWORD_GROUP, yytext); return KEYWORD_GROUP; }
+"BY"            { recordToken(logql::TokenType::KEYWORD_BY, yytext); return KEYWORD_BY; }
+"ORDER"         { recordToken(logql::TokenType::KEYWORD_ORDER, yytext); return KEYWORD_ORDER; }
+"ASC"           { recordToken(logql::TokenType::KEYWORD_ASC, yytext); return KEYWORD_ASC; }
+"DESC"          { recordToken(logql::TokenType::KEYWORD_DESC, yytext); return KEYWORD_DESC; }
+"LIMIT"         { recordToken(logql::TokenType::KEYWORD_LIMIT, yytext); return KEYWORD_LIMIT; }
+"DISTINCT"      { recordToken(logql::TokenType::KEYWORD_DISTINCT, yytext); return KEYWORD_DISTINCT; }
+"AS"            { recordToken(logql::TokenType::KEYWORD_AS, yytext); return KEYWORD_AS; }
 
-"AND"           { recordToken(logql::TokenType::KEYWORD_AND, yytext); yylval.str_val = strdup(yytext); return KEYWORD_AND; }
-"OR"            { recordToken(logql::TokenType::KEYWORD_OR, yytext); yylval.str_val = strdup(yytext); return KEYWORD_OR; }
-"NOT"           { recordToken(logql::TokenType::KEYWORD_NOT, yytext); yylval.str_val = strdup(yytext); return KEYWORD_NOT; }
+"AND"           { recordToken(logql::TokenType::KEYWORD_AND, yytext); return KEYWORD_AND; }
+"OR"            { recordToken(logql::TokenType::KEYWORD_OR, yytext); return KEYWORD_OR; }
+"NOT"           { recordToken(logql::TokenType::KEYWORD_NOT, yytext); return KEYWORD_NOT; }
 
-"COUNT"         { recordToken(logql::TokenType::KEYWORD_COUNT, yytext); yylval.str_val = strdup(yytext); return KEYWORD_COUNT; }
-"MIN"           { recordToken(logql::TokenType::KEYWORD_MIN, yytext); yylval.str_val = strdup(yytext); return KEYWORD_MIN; }
-"MAX"           { recordToken(logql::TokenType::KEYWORD_MAX, yytext); yylval.str_val = strdup(yytext); return KEYWORD_MAX; }
-"AVG"           { recordToken(logql::TokenType::KEYWORD_AVG, yytext); yylval.str_val = strdup(yytext); return KEYWORD_AVG; }
-"SUM"           { recordToken(logql::TokenType::KEYWORD_SUM, yytext); yylval.str_val = strdup(yytext); return KEYWORD_SUM; }
+"COUNT"         { recordToken(logql::TokenType::KEYWORD_COUNT, yytext); return KEYWORD_COUNT; }
+"MIN"           { recordToken(logql::TokenType::KEYWORD_MIN, yytext); return KEYWORD_MIN; }
+"MAX"           { recordToken(logql::TokenType::KEYWORD_MAX, yytext); return KEYWORD_MAX; }
+"AVG"           { recordToken(logql::TokenType::KEYWORD_AVG, yytext); return KEYWORD_AVG; }
+"SUM"           { recordToken(logql::TokenType::KEYWORD_SUM, yytext); return KEYWORD_SUM; }
 
 "TRUE"          { recordToken(logql::TokenType::KEYWORD_TRUE, yytext); yylval.bool_val = true; return KEYWORD_TRUE; }
 "FALSE"         { recordToken(logql::TokenType::KEYWORD_FALSE, yytext); yylval.bool_val = false; return KEYWORD_FALSE; }
-"NULL"          { recordToken(logql::TokenType::KEYWORD_NULL, yytext); yylval.str_val = strdup(yytext); return KEYWORD_NULL; }
+"NULL"          { recordToken(logql::TokenType::KEYWORD_NULL, yytext); return KEYWORD_NULL; }
 
 ">="            { recordToken(logql::TokenType::OP_GE, yytext); return OP_GE; }
 "<="            { recordToken(logql::TokenType::OP_LE, yytext); return OP_LE; }

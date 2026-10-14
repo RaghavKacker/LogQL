@@ -6,7 +6,11 @@ class CompileRequest(BaseModel):
 
 class ExecuteRequest(BaseModel):
     query: str = Field(..., description="LogQL query text")
-    datasetId: Optional[str] = Field("app_events", description="Dataset identifier")
+    datasetId: Optional[str] = Field("app_events", alias="dataset_id", description="Dataset identifier")
+
+    class Config:
+        populate_by_name = True
+        allow_population_by_field_name = True
 
 class DatasetInfo(BaseModel):
     id: str

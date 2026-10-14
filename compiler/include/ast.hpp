@@ -22,6 +22,7 @@ public:
     virtual std::unique_ptr<ExprNode> clone() const = 0;
     virtual bool isConstant() const { return false; }
     virtual void collectReferencedFields(std::vector<std::string>& fields) const = 0;
+    virtual std::string toString() const { return ""; }
 };
 
 class LiteralNode : public ExprNode {
@@ -45,6 +46,10 @@ public:
     bool isConstant() const override { return true; }
 
     void collectReferencedFields(std::vector<std::string>&) const override {}
+
+    std::string toString() const override {
+        return value.asString();
+    }
 
     nlohmann::json toJson() const override {
         return {
@@ -71,6 +76,10 @@ public:
 
     void collectReferencedFields(std::vector<std::string>& fields) const override {
         fields.push_back(name);
+    }
+
+    std::string toString() const override {
+        return name;
     }
 
     nlohmann::json toJson() const override {
@@ -105,6 +114,12 @@ public:
         if (right) right->collectReferencedFields(fields);
     }
 
+    std::string toString() const override {
+        std::string lStr = left ? left->toString() : "";
+        std::string rStr = right ? right->toString() : "";
+        return lStr + " " + op + " " + rStr;
+    }
+
     nlohmann::json toJson() const override {
         return {
             {"type", "BinaryOpNode"},
@@ -137,6 +152,10 @@ public:
         if (operand) operand->collectReferencedFields(fields);
     }
 
+    std::string toString() const override {
+        return op + " " + (operand ? operand->toString() : "");
+    }
+
     nlohmann::json toJson() const override {
         return {
             {"type", "UnaryOpNode"},
@@ -166,6 +185,10 @@ public:
 
     void collectReferencedFields(std::vector<std::string>& fields) const override {
         if (argument != "*") fields.push_back(argument);
+    }
+
+    std::string toString() const override {
+        return funcName + "(" + argument + ")";
     }
 
     nlohmann::json toJson() const override {

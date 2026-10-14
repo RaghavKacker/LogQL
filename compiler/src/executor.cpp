@@ -8,9 +8,13 @@ namespace logql {
 
 struct AggregateAccumulator {
     int64_t count{0};
+    int64_t numericCount{0};
     double sum{0.0};
     double minVal{1e18};
     double maxVal{-1e18};
+    std::string minStr{""};
+    std::string maxStr{""};
+    bool isStringArg{false};
     bool hasMin{false};
     bool hasMax{false};
 };
@@ -75,6 +79,21 @@ QueryResult QueryExecutor::execute(const QueryNode* query, const std::vector<Log
         std::map<std::string, std::unordered_map<std::string, AggregateAccumulator>> groupAccs;
         std::map<std::string, LogRecord> groupSampleRecords;
 
+        // If scalar aggregation (no GROUP BY), pre-seed the single global aggregate group so empty datasets return 1 row
+        if (!query->groupBy && hasAggregates) {
+            groupAccs["__ALL__"];
+            groupSampleRecords["__ALL__"] = LogRecord{};
+            if (query->select) {
+                for (const auto& it : query->select->items) {
+                    if (!it || !it->expr) continue;
+                    if (auto* fn = dynamic_cast<FunctionCallNode*>(it->expr.get())) {
+                        std::string fnKey = fn->funcName + "(" + fn->argument + ")";
+                        groupAccs["__ALL__"][fnKey];
+                    }
+                }
+            }
+        }
+
         for (const auto& rec : filteredRecords) {
             std::string groupKey = "";
             if (query->groupBy) {
@@ -106,8 +125,14 @@ QueryResult QueryExecutor::execute(const QueryNode* query, const std::vector<Log
                             if (fVal.isNumeric()) {
                                 double num = fVal.asFloat();
                                 acc.sum += num;
+                                acc.numericCount++;
                                 if (!acc.hasMin || num < acc.minVal) { acc.minVal = num; acc.hasMin = true; }
                                 if (!acc.hasMax || num > acc.maxVal) { acc.maxVal = num; acc.hasMax = true; }
+                            } else if (fVal.getType() == DataType::TYPE_STRING) {
+                                acc.isStringArg = true;
+                                std::string s = fVal.asString();
+                                if (!acc.hasMin || s < acc.minStr) { acc.minStr = s; acc.hasMin = true; }
+                                if (!acc.hasMax || s > acc.maxStr) { acc.maxStr = s; acc.hasMax = true; }
                             }
                         }
                     }
@@ -137,16 +162,24 @@ QueryResult QueryExecutor::execute(const QueryNode* query, const std::vector<Log
                             if (fn->funcName == "COUNT") row[colName] = FieldValue(acc.count);
                             else if (fn->funcName == "SUM") row[colName] = FieldValue(acc.sum);
                             else if (fn->funcName == "AVG") {
-                                double avg = (acc.count > 0) ? (acc.sum / acc.count) : 0.0;
+                                double avg = (acc.numericCount > 0) ? (acc.sum / acc.numericCount) : 0.0;
                                 row[colName] = FieldValue(avg);
                             }
-                            else if (fn->funcName == "MIN") row[colName] = acc.hasMin ? FieldValue(acc.minVal) : FieldValue();
-                            else if (fn->funcName == "MAX") row[colName] = acc.hasMax ? FieldValue(acc.maxVal) : FieldValue();
+                            else if (fn->funcName == "MIN") {
+                                if (acc.isStringArg) row[colName] = acc.hasMin ? FieldValue(acc.minStr) : FieldValue();
+                                else row[colName] = acc.hasMin ? FieldValue(acc.minVal) : FieldValue();
+                            }
+                            else if (fn->funcName == "MAX") {
+                                if (acc.isStringArg) row[colName] = acc.hasMax ? FieldValue(acc.maxStr) : FieldValue();
+                                else row[colName] = acc.hasMax ? FieldValue(acc.maxVal) : FieldValue();
+                            }
                         } else {
                             row[colName] = FieldValue();
                         }
+                        row[fnKey] = row[colName];
                     } else if (auto* id = dynamic_cast<IdentifierNode*>(it->expr.get())) {
                         row[colName] = sampleRec.getField(id->name);
+                        row[id->name] = row[colName];
                     } else {
                         row[colName] = it->expr->evaluate(sampleRec);
                     }
@@ -159,19 +192,21 @@ QueryResult QueryExecutor::execute(const QueryNode* query, const std::vector<Log
         // Scalar Projection
         for (const auto& rec : filteredRecords) {
             Row row;
-            if (query->select && query->select->isStar) {
-                row["timestamp"] = FieldValue(rec.timestamp);
-                row["service"] = FieldValue(rec.service);
-                row["level"] = FieldValue(rec.level);
-                row["status"] = FieldValue(rec.status);
-                row["response_time"] = FieldValue(rec.response_time);
-                row["path"] = FieldValue(rec.path);
-                row["ip"] = FieldValue(rec.ip);
-                row["message"] = FieldValue(rec.message);
-            } else if (query->select) {
+            // Pre-fill log record attributes so ORDER BY can reference unprojected fields
+            row["timestamp"] = FieldValue(rec.timestamp);
+            row["service"] = FieldValue(rec.service);
+            row["level"] = FieldValue(rec.level);
+            row["status"] = FieldValue(rec.status);
+            row["response_time"] = FieldValue(rec.response_time);
+            row["path"] = FieldValue(rec.path);
+            row["ip"] = FieldValue(rec.ip);
+            row["message"] = FieldValue(rec.message);
+
+            if (query->select && !query->select->isStar) {
                 for (const auto& it : query->select->items) {
                     if (!it || !it->expr) continue;
-                    row[it->getDisplayName()] = it->expr->evaluate(rec);
+                    std::string dispName = it->getDisplayName();
+                    row[dispName] = it->expr->evaluate(rec);
                 }
             }
             processedRows.push_back(std::move(row));
@@ -210,6 +245,12 @@ QueryResult QueryExecutor::execute(const QueryNode* query, const std::vector<Log
 
                 auto itA = a.find(sortKey);
                 auto itB = b.find(sortKey);
+
+                if (itA == a.end() && item.expr) {
+                    itA = a.find(item.expr->toString());
+                    itB = b.find(item.expr->toString());
+                }
+
                 FieldValue valA = (itA != a.end()) ? itA->second : FieldValue();
                 FieldValue valB = (itB != b.end()) ? itB->second : FieldValue();
 

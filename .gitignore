@@ -23,3 +23,8 @@ frontend/out/
 # Environment
 .env
 .env.local
+
+# Local Toolchains
+tools/
+w64devkit/
+

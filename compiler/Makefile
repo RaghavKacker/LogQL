@@ -7,7 +7,7 @@ BISON ?= win_bison
 # Check if win_flex is available, else fallback to flex
 ifeq ($(OS),Windows_NT)
     EXE_EXT = .exe
-    MKDIR = if not exist build mkdir build
+    MKDIR = mkdir -p build
 else
     EXE_EXT =
     FLEX = flex

@@ -14,23 +14,23 @@ const TreeNode: React.FC<{ data: any; label?: string; depth?: number }> = ({
 
   if (data === null || data === undefined) {
     return (
-      <div className="text-ide-subtle text-[11px] font-mono py-0.5">
-        {label ? <span className="text-ide-muted">{label}: </span> : ""}null
+      <div className="text-slate-400 text-xs font-mono py-1">
+        {label ? <span className="text-slate-400">{label}: </span> : ""}<span className="italic text-slate-400">null</span>
       </div>
     );
   }
 
   if (typeof data !== "object") {
     return (
-      <div className="text-[11px] font-mono py-0.5 flex items-center gap-1.5">
-        {label && <span className="text-ide-muted font-medium">{label}:</span>}
+      <div className="text-xs font-mono py-1 flex items-center gap-2">
+        {label && <span className="text-slate-400 font-medium">{label}:</span>}
         <span
           className={
             typeof data === "number"
-              ? "text-token-number font-bold"
+              ? "text-[#cfa058] font-semibold"
               : typeof data === "boolean"
-              ? "text-status-success font-bold"
-              : "text-token-string"
+              ? "text-[#72b192] font-semibold"
+              : "text-[#8ea8c9] font-medium"
           }
         >
           {JSON.stringify(data)}
@@ -44,25 +44,25 @@ const TreeNode: React.FC<{ data: any; label?: string; depth?: number }> = ({
   const nodeType = data.type || (isArray ? `Array[${data.length}]` : "Object");
 
   return (
-    <div className="text-[11px] font-mono ml-3 border-l border-ide-border pl-2.5 py-0.5">
+    <div className="text-xs font-mono ml-3.5 border-l-2 border-[#28344b] pl-3 py-1">
       <div
-        className="flex items-center gap-1.5 cursor-pointer text-ide-muted hover:text-ide-text select-none py-0.5 group"
+        className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-1 group"
         onClick={() => setExpanded(!expanded)}
       >
-        {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-        {label && <span className="text-token-func font-medium">{label}:</span>}
-        <span className="bg-ide-surface border border-ide-border px-1.5 py-0.2 rounded text-[10px] font-bold text-token-keyword group-hover:border-ide-borderLight">
+        {expanded ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
+        {label && <span className="text-[#9b8cb8] font-semibold">{label}:</span>}
+        <span className="bg-[#182333] border border-[#2c3e59] px-2 py-0.5 rounded text-[11px] font-semibold text-[#7fa1c4] group-hover:border-[#3e567a] transition">
           {nodeType}
         </span>
         {!expanded && (
-          <span className="text-ide-subtle text-[10px]">
+          <span className="text-slate-400 text-xs">
             ({isArray ? `${data.length} items` : `${keys.length} fields`})
           </span>
         )}
       </div>
 
       {expanded && (
-        <div className="mt-0.5 space-y-0.5">
+        <div className="mt-1 space-y-1">
           {isArray ? (
             data.map((item: any, i: number) => (
               <TreeNode key={i} data={item} label={`[${i}]`} depth={depth + 1} />
@@ -85,7 +85,7 @@ export const AstViewer: React.FC<AstViewerProps> = ({ ast }) => {
 
   if (!ast) {
     return (
-      <div className="p-12 text-center text-ide-muted font-mono text-xs">
+      <div className="p-16 text-center text-slate-400 font-mono text-xs border border-dashed border-ide-border rounded-lg">
         No AST representation available. Compile or run a query to inspect the Bison LALR(1) syntax tree.
       </div>
     );
@@ -98,37 +98,42 @@ export const AstViewer: React.FC<AstViewerProps> = ({ ast }) => {
   };
 
   return (
-    <div className="space-y-3 text-xs">
-      {/* Header bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-ide-muted border-b border-ide-border pb-2.5 font-mono text-[11px]">
+    <div className="space-y-2.5 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 text-slate-400 border-b border-ide-border pb-2 font-mono text-xs">
         <div className="flex items-center gap-3">
-          <span>Parser Engine: <strong className="text-ide-text">Bison 3.8 (parser.y LALR(1))</strong></span>
-          <span>Root: <strong className="text-token-keyword">{ast.type || "QueryNode"}</strong></span>
+          <span className="flex items-center gap-1.5">
+            <span>Parser Engine:</span>
+            <strong className="text-slate-100 bg-ide-surface px-2 py-0.5 rounded border border-ide-border">Bison 3.8 (LALR(1))</strong>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span>Root Node:</span>
+            <strong className="text-[#7fa1c4] font-semibold">{ast.type || "QueryNode"}</strong>
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={handleCopy}
             title="Copy AST JSON to clipboard"
-            className="px-2 py-1 rounded bg-ide-surface hover:bg-ide-hover border border-ide-border text-ide-muted hover:text-ide-text transition flex items-center gap-1 text-[11px]"
+            className="px-2.5 py-1 rounded-md bg-ide-surface hover:bg-ide-hover border border-ide-border text-slate-300 hover:text-white transition flex items-center gap-1 text-xs shadow-sm"
           >
-            {copied ? <Check size={12} className="text-status-success" /> : <Copy size={12} />}
+            {copied ? <Check size={12} className="text-[#72b192]" /> : <Copy size={12} />}
             {copied ? "Copied" : "Copy JSON"}
           </button>
 
-          <div className="flex items-center bg-ide-bg border border-ide-border rounded p-0.5">
+          <div className="flex items-center bg-ide-bg border border-ide-border rounded-md p-0.5">
             <button
               onClick={() => setViewMode("tree")}
-              className={`px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1 ${
-                viewMode === "tree" ? "bg-ide-panel text-white" : "text-ide-subtle hover:text-ide-text"
+              className={`px-2.5 py-0.5 rounded text-xs font-semibold flex items-center gap-1 transition ${
+                viewMode === "tree" ? "bg-ide-panel text-white shadow-sm" : "text-slate-400 hover:text-white"
               }`}
             >
               <Network size={12} /> Tree
             </button>
             <button
               onClick={() => setViewMode("json")}
-              className={`px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1 ${
-                viewMode === "json" ? "bg-ide-panel text-white" : "text-ide-subtle hover:text-ide-text"
+              className={`px-2.5 py-0.5 rounded text-xs font-semibold flex items-center gap-1 transition ${
+                viewMode === "json" ? "bg-ide-panel text-white shadow-sm" : "text-slate-400 hover:text-white"
               }`}
             >
               <Code size={12} /> JSON IR
@@ -137,13 +142,12 @@ export const AstViewer: React.FC<AstViewerProps> = ({ ast }) => {
         </div>
       </div>
 
-      {/* Content */}
       {viewMode === "tree" ? (
-        <div className="bg-ide-panel border border-ide-border rounded p-3 max-h-[460px] overflow-y-auto">
+        <div className="bg-ide-panel border border-ide-border rounded-lg p-3 max-h-[calc(100vh-410px)] min-h-[180px] overflow-y-auto shadow-sm">
           <TreeNode data={ast} />
         </div>
       ) : (
-        <pre className="bg-ide-panel border border-ide-border rounded p-3 text-[11px] font-mono text-ide-text max-h-[460px] overflow-y-auto leading-relaxed">
+        <pre className="bg-ide-panel border border-ide-border rounded-lg p-3 text-xs font-mono text-slate-100 max-h-[calc(100vh-410px)] min-h-[180px] overflow-y-auto leading-relaxed shadow-sm">
           {JSON.stringify(ast, null, 2)}
         </pre>
       )}

@@ -16,7 +16,9 @@ SemanticResult SemanticAnalyzer::analyze(const QueryNode* query) {
 
     // 1. Validate FROM table
     if (query->from) {
-        if (query->from->table != "logs") {
+        std::string tableName = query->from->table;
+        std::transform(tableName.begin(), tableName.end(), tableName.begin(), ::tolower);
+        if (tableName != "logs") {
             result.diagnostics.push_back({"WARNING", "Unknown table '" + query->from->table + "', default schema 'logs' will be used"});
         }
     } else {
@@ -122,14 +124,15 @@ void SemanticAnalyzer::validateExpression(const ExprNode* expr, std::vector<Diag
         DataType leftType = inferType(binOp->left.get());
         DataType rightType = inferType(binOp->right.get());
 
-        // Numeric comparison checks
+        // Numeric or string comparison checks
         if (binOp->op == "<" || binOp->op == ">" || binOp->op == "<=" || binOp->op == ">=") {
             bool leftNum = (leftType == DataType::TYPE_INT || leftType == DataType::TYPE_FLOAT);
             bool rightNum = (rightType == DataType::TYPE_INT || rightType == DataType::TYPE_FLOAT);
-            if (!leftNum || !rightNum) {
+            bool bothStr = (leftType == DataType::TYPE_STRING && rightType == DataType::TYPE_STRING);
+            if ((!leftNum || !rightNum) && !bothStr) {
                 diags.push_back({
                     "ERROR",
-                    "Relational operator '" + binOp->op + "' requires numeric operands, got " +
+                    "Relational operator '" + binOp->op + "' requires numeric or string operands, got " +
                     dataTypeToString(leftType) + " and " + dataTypeToString(rightType)
                 });
             }
