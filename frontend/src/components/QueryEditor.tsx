@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Play, RotateCcw, ChevronDown, Check, Undo2, AlignLeft, Sparkles, Database } from "lucide-react";
+import { Play, RotateCcw, ChevronDown, Check, Undo2, AlignLeft, Sparkles, Database, FileCode } from "lucide-react";
 import { DatasetInfo } from "@/lib/api";
 
 export const PRESET_QUERIES = [
@@ -40,6 +40,7 @@ interface QueryEditorProps {
   selectedDataset?: string;
   onSelectDataset?: (id: string) => void;
   onSelectPreset?: (q: string) => void;
+  onExport?: () => void;
 }
 
 export const QueryEditor: React.FC<QueryEditorProps> = ({
@@ -52,7 +53,8 @@ export const QueryEditor: React.FC<QueryEditorProps> = ({
   datasets,
   selectedDataset,
   onSelectDataset,
-  onSelectPreset
+  onSelectPreset,
+  onExport
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [lastClearedQuery, setLastClearedQuery] = useState<string | null>(null);
@@ -205,6 +207,17 @@ export const QueryEditor: React.FC<QueryEditorProps> = ({
             <RotateCcw size={13} />
             <span>Clear</span>
           </button>
+
+          {onExport && (
+            <button
+              onClick={onExport}
+              title="Export query as runnable Python, C++, or cURL code"
+              className="px-2.5 py-1.5 rounded-md text-xs font-medium text-cyan-300 hover:text-white bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-800/60 transition flex items-center gap-1.5"
+            >
+              <FileCode size={13} className="text-cyan-400" />
+              <span>Export Code</span>
+            </button>
+          )}
 
           {/* Primary Action Button */}
           <button

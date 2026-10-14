@@ -18,6 +18,7 @@ import { OptimizerDiff } from "@/components/OptimizerDiff";
 import { PlanViewer } from "@/components/PlanViewer";
 import { ResultsTable } from "@/components/ResultsTable";
 import { TacViewer } from "@/components/TacViewer";
+import { ExportModal } from "@/components/ExportModal";
 import {
   Terminal,
   Code2,
@@ -60,6 +61,7 @@ export default function StudioPage() {
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<CompilerResponse | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   const handleQueryChange = (newQuery: string) => {
     setQuery(newQuery);
@@ -273,6 +275,7 @@ export default function StudioPage() {
                 handleExecute(query, id);
               }}
               onSelectPreset={handleSelectPreset}
+              onExport={() => setIsExportOpen(true)}
             />
 
             {/* Error Message Card */}
@@ -467,7 +470,7 @@ export default function StudioPage() {
             </div>
 
             <div className="bg-ide-panel border border-ide-border rounded-lg p-4 flex-1 overflow-y-auto">
-              <PlanViewer plan={response?.physicalPlan} />
+              <PlanViewer plan={response?.physicalPlan} results={response?.results} />
             </div>
           </div>
         )}
@@ -586,6 +589,14 @@ export default function StudioPage() {
             handleExecute(query, newId);
           }
         }}
+      />
+
+      {/* Export Code Modal */}
+      <ExportModal
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        query={query}
+        datasetId={selectedDataset}
       />
     </div>
   );
