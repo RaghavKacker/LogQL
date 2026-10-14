@@ -12,6 +12,7 @@
 #include "optimizer.hpp"
 #include "execution_plan.hpp"
 #include "executor.hpp"
+#include "tac_generator.hpp"
 #include "json.hpp"
 
 // Bison / Flex globals
@@ -201,7 +202,11 @@ int main(int argc, char** argv) {
     logql::ExecutionPlanner planner;
     auto physicalPlan = planner.buildPlan(optimizedQuery.get());
 
-    // 5. Query Execution (if requested and dataset provided)
+    // 5. Intermediate Code Generation (Three-Address Code & Quadruples)
+    logql::TacGenerator tacGen;
+    auto tacResult = tacGen.generate(optimizedQuery.get());
+
+    // 6. Query Execution (if requested and dataset provided)
     logql::QueryResult execResult;
     if (executeMode && !datasetPath.empty()) {
         std::vector<logql::LogRecord> dataset = loadDataset(datasetPath);
@@ -230,6 +235,9 @@ int main(int argc, char** argv) {
         nlohmann::json optList = nlohmann::json::array();
         for (const auto& opt : optimizer.records) optList.push_back(opt.toJson());
         output["optimizations"] = optList;
+
+        // Three-Address Code & Quadruples (Intermediate Representation)
+        output["tac"] = tacResult.toJson();
 
         // Physical Plan
         output["physicalPlan"] = physicalPlan ? physicalPlan->toJson() : nullptr;

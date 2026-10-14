@@ -17,7 +17,7 @@ endif
 
 TARGET = build/logql_cli$(EXE_EXT)
 
-SRCS = src/ast.cpp src/semantic.cpp src/optimizer.cpp src/execution_plan.cpp src/executor.cpp src/main.cpp
+SRCS = src/ast.cpp src/semantic.cpp src/optimizer.cpp src/tac_generator.cpp src/execution_plan.cpp src/executor.cpp src/main.cpp
 PARSER_GEN = parser.tab.cpp parser.tab.hpp
 LEXER_GEN = lex.yy.cpp
 

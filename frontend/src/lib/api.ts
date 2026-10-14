@@ -35,6 +35,37 @@ export interface ResultsData {
   metrics: ExecutionMetrics;
 }
 
+export interface QuadrupleItem {
+  index: number;
+  op: string;
+  arg1: string;
+  arg2: string;
+  result: string;
+  comment?: string;
+}
+
+export interface TacInstructionItem {
+  line: number;
+  label?: string;
+  code: string;
+  block?: string;
+}
+
+export interface BasicBlockItem {
+  name: string;
+  label: string;
+  instructions: string[];
+  successors: string[];
+}
+
+export interface TacInfo {
+  quadruples: QuadrupleItem[];
+  instructions: TacInstructionItem[];
+  basicBlocks: BasicBlockItem[];
+  temporaryCount: number;
+  temporaryVariables: string[];
+}
+
 export interface CompilerResponse {
   success: boolean;
   stage?: string;
@@ -49,6 +80,7 @@ export interface CompilerResponse {
     diagnostics: DiagnosticItem[];
   };
   optimizations?: OptimizationItem[];
+  tac?: TacInfo;
   physicalPlan?: any;
   results?: ResultsData;
 }

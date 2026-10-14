@@ -17,6 +17,7 @@ import { SemanticViewer } from "@/components/SemanticViewer";
 import { OptimizerDiff } from "@/components/OptimizerDiff";
 import { PlanViewer } from "@/components/PlanViewer";
 import { ResultsTable } from "@/components/ResultsTable";
+import { TacViewer } from "@/components/TacViewer";
 import {
   Terminal,
   Code2,
@@ -35,7 +36,7 @@ import {
 } from "lucide-react";
 
 type MainView = "studio" | "compiler" | "plan" | "datasets";
-type CompilerTab = "tokens" | "ast" | "semantic" | "optimizer";
+type CompilerTab = "tokens" | "ast" | "semantic" | "optimizer" | "tac";
 
 const DEFAULT_QUERY = `SELECT service, COUNT(*)\nFROM logs\nWHERE status >= 500\nGROUP BY service\nORDER BY COUNT(*) DESC;`;
 
@@ -409,6 +410,23 @@ export default function StudioPage() {
                     </span>
                   )}
                 </button>
+
+                <button
+                  onClick={() => setCompilerTab("tac")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition ${
+                    compilerTab === "tac"
+                      ? "bg-ide-panel text-white shadow-sm border border-ide-border font-semibold"
+                      : "text-ide-muted hover:text-white"
+                  }`}
+                >
+                  <Code2 size={13} className="text-cyan-400" />
+                  <span>5. Intermediate Code (TAC & Quadruples)</span>
+                  {response?.tac && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-950/60 text-cyan-400 border border-cyan-800/60">
+                      {response.tac.quadruples.length} quads
+                    </span>
+                  )}
+                </button>
               </div>
 
               {/* Tab Content Pane */}
@@ -423,6 +441,7 @@ export default function StudioPage() {
                     optimizedAst={response?.optimizedAst}
                   />
                 )}
+                {compilerTab === "tac" && <TacViewer tac={response?.tac} />}
               </div>
             </div>
           </div>

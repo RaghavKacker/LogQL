@@ -41,6 +41,33 @@ class TokenItem(BaseModel):
     line: int
     col: int
 
+class QuadrupleItem(BaseModel):
+    index: int
+    op: str
+    arg1: str = ""
+    arg2: str = ""
+    result: str = ""
+    comment: Optional[str] = ""
+
+class TacInstructionItem(BaseModel):
+    line: int
+    label: Optional[str] = ""
+    code: str
+    block: Optional[str] = ""
+
+class BasicBlockItem(BaseModel):
+    name: str
+    label: str = ""
+    instructions: List[str] = []
+    successors: List[str] = []
+
+class TacInfo(BaseModel):
+    quadruples: List[QuadrupleItem] = []
+    instructions: List[TacInstructionItem] = []
+    basicBlocks: List[BasicBlockItem] = []
+    temporaryCount: int = 0
+    temporaryVariables: List[str] = []
+
 class CompileResponse(BaseModel):
     success: bool
     stage: Optional[str] = None
@@ -52,6 +79,7 @@ class CompileResponse(BaseModel):
     optimizedAst: Optional[Dict[str, Any]] = None
     semantic: Optional[SemanticInfo] = None
     optimizations: Optional[List[OptimizationItem]] = None
+    tac: Optional[TacInfo] = None
     physicalPlan: Optional[Dict[str, Any]] = None
 
 class ExecutionMetricsModel(BaseModel):
@@ -77,5 +105,6 @@ class ExecuteResponse(BaseModel):
     optimizedAst: Optional[Dict[str, Any]] = None
     semantic: Optional[SemanticInfo] = None
     optimizations: Optional[List[OptimizationItem]] = None
+    tac: Optional[TacInfo] = None
     physicalPlan: Optional[Dict[str, Any]] = None
     results: Optional[ResultsData] = None
