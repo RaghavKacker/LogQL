@@ -11,32 +11,32 @@ const config: Config = {
     extend: {
       colors: {
         ide: {
-          bg: "#10141d",
-          sidebar: "#141a26",
-          panel: "#18202e",
-          surface: "#1f283a",
-          border: "#28344b",
-          borderLight: "#354461",
-          hover: "#222c3e",
-          active: "#4b678c",
-          text: "#dde4ee",
-          muted: "#8e9eb3",
-          subtle: "#5f6f85"
+          bg: "#0d1117",
+          sidebar: "#13161c",
+          panel: "#161920",
+          surface: "#1e222b",
+          border: "#282c37",
+          borderLight: "#353a48",
+          hover: "#252934",
+          active: "#2e3442",
+          text: "#f1f5f9",
+          muted: "#94a3b8",
+          subtle: "#64748b"
         },
         token: {
-          keyword: "#7ea3cc",
-          ident: "#dde4ee",
-          string: "#73b098",
-          number: "#cca268",
-          func: "#a392bf",
-          op: "#84a98c",
-          comment: "#6b7c93"
+          keyword: "#93c5fd",
+          ident: "#f1f5f9",
+          string: "#86efac",
+          number: "#fcd34d",
+          func: "#c084fc",
+          op: "#94a3b8",
+          comment: "#64748b"
         },
         status: {
-          success: "#6ea88f",
-          warning: "#cca268",
-          error: "#c97373",
-          info: "#759bc2"
+          success: "#22c55e",
+          warning: "#f59e0b",
+          error: "#ef4444",
+          info: "#38bdf8"
         }
       },
       fontFamily: {
@@ -54,6 +54,7 @@ const config: Config = {
           "-apple-system",
           "BlinkMacSystemFont",
           "Segoe UI",
+          "Inter",
           "Helvetica",
           "Arial",
           "sans-serif"

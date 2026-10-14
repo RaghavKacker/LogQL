@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { DatasetInfo, uploadDataset } from "@/lib/api";
-import { Database, UploadCloud, Check, FileText } from "lucide-react";
+import { Database, UploadCloud } from "lucide-react";
 
 interface DatasetSelectorProps {
   datasets: DatasetInfo[];
@@ -38,18 +38,18 @@ export const DatasetSelector: React.FC<DatasetSelectorProps> = ({
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 bg-dark-card border border-dark-border p-3 rounded-xl">
+    <div className="flex flex-wrap items-center justify-between gap-3 bg-ide-panel border border-ide-border p-3 rounded-lg text-xs font-mono">
       <div className="flex items-center gap-2">
-        <Database size={16} className="text-brand-cyan" />
-        <span className="text-xs font-semibold text-gray-300">Active Dataset:</span>
+        <Database size={15} className="text-ide-muted" />
+        <span className="text-xs font-medium text-ide-muted">Active Dataset:</span>
         <select
           value={selectedDataset}
           onChange={(e) => onSelectDataset(e.target.value)}
-          className="bg-dark-input border border-dark-border text-xs text-white rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 font-mono"
+          className="bg-ide-bg border border-ide-border text-xs text-ide-text rounded px-2.5 py-1 focus:outline-none focus:border-ide-borderLight font-mono cursor-pointer"
         >
           {datasets.map((d) => (
             <option key={d.id} value={d.id}>
-              {d.name} ({d.recordCount} records, {d.format})
+              {d.name} ({d.recordCount} logs, {d.format})
             </option>
           ))}
         </select>
@@ -57,66 +57,66 @@ export const DatasetSelector: React.FC<DatasetSelectorProps> = ({
 
       <button
         onClick={() => setShowUploadModal(true)}
-        className="flex items-center gap-1.5 bg-dark-bg hover:bg-dark-border text-gray-300 hover:text-white border border-dark-border px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+        className="flex items-center gap-1.5 bg-ide-surface hover:bg-ide-hover text-ide-text border border-ide-border px-2.5 py-1 rounded text-xs font-medium transition"
       >
-        <UploadCloud size={14} className="text-indigo-400" />
-        Upload Custom Log
+        <UploadCloud size={13} className="text-ide-muted" />
+        <span>Upload Dataset</span>
       </button>
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-dark-card border border-dark-border rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-dark-border pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <FileText size={16} className="text-brand-cyan" /> Ingest Custom Log Dataset
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-ide-panel border border-ide-border rounded-lg max-w-lg w-full p-5 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-ide-border pb-3">
+              <h3 className="text-xs font-semibold text-ide-text flex items-center gap-2 uppercase tracking-wide">
+                <Database size={14} className="text-ide-muted" /> Ingest Log Dataset
               </h3>
               <button
                 onClick={() => setShowUploadModal(false)}
-                className="text-gray-400 hover:text-white text-xs font-mono"
+                className="text-ide-subtle hover:text-white text-xs font-mono"
               >
                 ✕ Close
               </button>
             </div>
 
-            <p className="text-xs text-gray-400">
-              Upload a `.jsonl`, `.log` (CLF), or `.txt` file, or paste raw log lines below. It will be parsed into the in-memory normalized store.
+            <p className="text-xs text-ide-muted leading-relaxed font-sans">
+              Upload a .jsonl, .log, or .txt file, or paste raw log lines.
             </p>
 
-            <div className="space-y-2">
-              <label className="text-xs text-gray-300 font-semibold">Select Log File:</label>
+            <div className="space-y-1.5">
+              <label className="text-xs text-ide-muted font-medium">Select File:</label>
               <input
                 type="file"
                 accept=".log,.jsonl,.txt,.json"
                 onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
-                className="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"
+                className="w-full text-xs text-ide-muted file:mr-3 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-medium file:bg-ide-surface file:text-ide-text hover:file:bg-ide-hover cursor-pointer border border-ide-border rounded p-1"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-gray-300 font-semibold">Or Paste Raw Log Lines:</label>
+              <label className="text-xs text-ide-muted font-medium">Or Paste Log Lines:</label>
               <textarea
-                rows={5}
+                rows={4}
                 value={uploadText}
                 onChange={(e) => setUploadText(e.target.value)}
-                placeholder='{"timestamp": "2026-09-28T10:00:00Z", "service": "auth", "status": 500, ...}'
-                className="w-full bg-dark-input border border-dark-border rounded-lg p-3 text-xs font-mono text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500"
+                placeholder="Paste raw log lines here..."
+                className="w-full bg-ide-bg border border-ide-border rounded p-2 text-xs font-mono text-ide-text placeholder-ide-subtle focus:outline-none focus:border-ide-borderLight resize-none"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-ide-border">
               <button
                 onClick={() => setShowUploadModal(false)}
-                className="px-4 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white transition"
+                className="px-3 py-1.5 rounded hover:bg-ide-surface text-xs text-ide-muted hover:text-white transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpload}
                 disabled={uploading}
-                className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-brand-cyan text-gray-950 hover:bg-cyan-400 transition font-bold disabled:opacity-50"
+                className="px-3.5 py-1.5 rounded font-medium bg-emerald-600 hover:bg-emerald-500 text-white text-xs transition disabled:opacity-50"
               >
-                {uploading ? "Ingesting..." : "Ingest & Normalize"}
+                {uploading ? "Uploading..." : "Upload"}
               </button>
             </div>
           </div>

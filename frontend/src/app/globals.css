@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #10141d;
-  --foreground: #dde4ee;
+  --background: #0d1117;
+  --foreground: #f1f5f9;
 }
 
 body {
@@ -22,14 +22,14 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #10141d;
+  background: #0d1117;
 }
 ::-webkit-scrollbar-thumb {
-  background: #252f43;
+  background: #282c37;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #33405b;
+  background: #353a48;
 }
 
 /* Code editor line numbers and formatting */
@@ -44,6 +44,6 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 1px solid #5d7d9f;
+  outline: 2px solid #3b82f6;
   outline-offset: -1px;
 }

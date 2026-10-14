@@ -20,7 +20,6 @@ import { PlanViewer } from "@/components/PlanViewer";
 import { ResultsTable } from "@/components/ResultsTable";
 import { MetricsCharts } from "@/components/MetricsCharts";
 import {
-  Terminal,
   Code2,
   GitBranch,
   ShieldCheck,
@@ -32,9 +31,6 @@ import {
   BookOpen,
   PanelLeftClose,
   PanelLeft,
-  Cpu,
-  Layers,
-  Clock,
   CheckCircle2,
   Database
 } from "lucide-react";
@@ -215,53 +211,53 @@ export default function StudioPage() {
 
   const tabs = [
     {
-      id: "results",
+      id: "results" as const,
       label: "Results",
+      sublabel: "Execution Output",
       icon: <TableIcon size={14} />,
-      badge: response?.results?.rows ? `${response.results.rows.length}` : null,
-      color: "text-[#72b192]"
+      badge: response?.results?.rows ? `${response.results.rows.length} rows` : null,
     },
     {
-      id: "tokens",
+      id: "tokens" as const,
       label: "Tokens",
+      sublabel: "Flex Scanner",
       icon: <Code2 size={14} />,
       badge: response?.tokens ? `${response.tokens.length}` : null,
-      color: "text-[#6ea8a3]"
     },
     {
-      id: "ast",
-      label: "AST IR",
+      id: "ast" as const,
+      label: "AST Tree",
+      sublabel: "Bison Parser",
       icon: <GitBranch size={14} />,
-      badge: response?.ast ? "LALR(1)" : null,
-      color: "text-[#9b8cb8]"
+      badge: response?.ast ? "Parsed" : null,
     },
     {
-      id: "semantic",
+      id: "semantic" as const,
       label: "Semantics",
+      sublabel: "Types & Scope",
       icon: <ShieldCheck size={14} />,
-      badge: response?.semantic?.isValid ? "Pass" : response?.semantic ? "Error" : null,
-      color: response?.semantic?.isValid ? "text-[#72b192]" : "text-[#d47878]"
+      badge: response?.semantic?.isValid ? "Valid" : response?.semantic ? "Error" : null,
     },
     {
-      id: "optimizer",
+      id: "optimizer" as const,
       label: "Optimizer",
+      sublabel: "Rule Passes",
       icon: <Zap size={14} />,
-      badge: response?.optimizations ? `${response.optimizations.length}` : null,
-      color: "text-[#cfa058]"
+      badge: response?.optimizations ? `${response.optimizations.length} passes` : null,
     },
     {
-      id: "plan",
-      label: "Physical Plan",
+      id: "plan" as const,
+      label: "Execution Plan",
+      sublabel: "Volcano Pipeline",
       icon: <Network size={14} />,
-      badge: response?.physicalPlan ? "Volcano" : null,
-      color: "text-[#7fa1c4]"
+      badge: response?.physicalPlan ? "Generated" : null,
     },
     {
-      id: "charts",
-      label: "Visual Charts",
+      id: "charts" as const,
+      label: "Charts",
+      sublabel: "Visual Analytics",
       icon: <BarChart2 size={14} />,
       badge: null,
-      color: "text-[#8ea8c9]"
     },
   ];
 
@@ -270,41 +266,43 @@ export default function StudioPage() {
   const getCleanTitle = (d?: DatasetInfo) => {
     if (!d) return selectedDataset;
     if (d.id === "app_events") return "Microservice Application Logs";
-    if (d.id === "web_access") return "Nginx / Apache Web Access Logs";
+    if (d.id === "web_access") return "Web Access Logs";
     if (d.id === "system") return "Operating System Daemons";
     return d.name;
   };
 
+  const errorText = response?.error ? response.error.toLowerCase() : "";
+
   return (
     <div className="h-screen bg-ide-bg text-ide-text flex flex-col font-sans overflow-hidden">
       {/* Top Application Bar */}
-      <header className="h-11 bg-ide-sidebar border-b border-ide-border px-3.5 flex items-center justify-between select-none text-xs flex-shrink-0 z-30 shadow-sm">
+      <header className="h-11 bg-ide-sidebar border-b border-ide-border px-3.5 flex items-center justify-between select-none text-xs flex-shrink-0 z-30">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             title="Toggle Datasets & Schema Sidebar"
-            className="p-1 hover:bg-ide-hover rounded-md text-slate-300 hover:text-white transition"
+            className="p-1 hover:bg-ide-surface rounded text-ide-muted hover:text-white transition"
           >
             {isSidebarOpen ? <PanelLeftClose size={15} /> : <PanelLeft size={15} />}
           </button>
 
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-100 font-mono tracking-tight text-sm flex items-center gap-1.5">
-              <span className="text-[#7fa1c4] font-black">&lt;/&gt;</span> LogQL
+            <span className="font-bold text-white font-mono tracking-tight text-sm flex items-center gap-1.5">
+              <span className="text-emerald-400 font-black">&lt;/&gt;</span> LogQL
             </span>
-            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#182232] text-[#8ea8c9] border border-[#2c3d59] font-semibold tracking-wider">
-              Compiler Workbench
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-ide-surface text-ide-muted border border-ide-border font-medium">
+              Compiler Studio
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-2 pl-3 border-l border-ide-border text-xs text-slate-300">
-            <span className="text-slate-400">Target:</span>
-            <span className="font-mono text-slate-100 bg-ide-panel px-2 py-0.5 rounded-md border border-ide-border font-medium flex items-center gap-1.5">
-              <Database size={12} className="text-[#7fa1c4]" />
+          <div className="hidden md:flex items-center gap-2 pl-3 border-l border-ide-border text-xs text-ide-muted">
+            <span className="text-ide-subtle">Active Dataset:</span>
+            <span className="font-mono text-slate-200 bg-ide-panel px-2 py-0.5 rounded border border-ide-border font-medium flex items-center gap-1.5">
+              <Database size={11} className="text-ide-muted" />
               {getCleanTitle(activeDatasetObj)}
             </span>
             {activeDatasetObj && (
-              <span className="text-slate-400 text-xs font-mono">
+              <span className="text-ide-subtle text-[11px] font-mono">
                 ({activeDatasetObj.recordCount.toLocaleString()} records &bull; {activeDatasetObj.format})
               </span>
             )}
@@ -312,23 +310,21 @@ export default function StudioPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="hidden lg:flex items-center gap-2 text-xs font-mono text-slate-300 bg-ide-panel px-2.5 py-0.5 rounded-md border border-ide-border shadow-inner">
-            <Cpu size={12} className="text-[#7fa1c4]" />
-            <span>Flex 2.6 &bull; Bison 3.8 &bull; GCC C++17</span>
+          <div className="hidden lg:flex items-center gap-2 text-xs font-mono text-ide-subtle bg-ide-panel px-2.5 py-0.5 rounded border border-ide-border">
+            <span>Flex 2.6 &bull; Bison 3.8 &bull; C++17</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link
-              href="/docs"
-              className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white px-2.5 py-1 rounded-md hover:bg-ide-hover transition border border-transparent hover:border-ide-border"
-            >
-              <BookOpen size={12} className="text-[#7fa1c4]" />
-              <span className="font-medium">Grammar & Docs</span>
-            </Link>
-          </div>
+          <Link
+            href="/docs"
+            className="flex items-center gap-1.5 text-xs text-ide-muted hover:text-white px-2.5 py-1 rounded hover:bg-ide-surface transition border border-transparent hover:border-ide-border font-medium"
+          >
+            <BookOpen size={12} className="text-ide-muted" />
+            <span>Grammar &amp; Docs</span>
+          </Link>
         </div>
       </header>
 
+      {/* Main Workspace Layout */}
       <div className="flex-1 flex overflow-hidden">
         {isSidebarOpen && (
           <Sidebar
@@ -346,7 +342,8 @@ export default function StudioPage() {
         )}
 
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-ide-bg">
-          <div className="p-2.5 sm:p-3.5 space-y-2 w-full flex-1 flex flex-col">
+          <div className="p-3 sm:p-4 space-y-3 w-full flex-1 flex flex-col max-w-7xl mx-auto">
+            {/* Query Editor Box */}
             <div className="flex-shrink-0">
               <QueryEditor
                 query={query}
@@ -364,164 +361,67 @@ export default function StudioPage() {
               />
             </div>
 
-            <div className="bg-ide-panel border border-ide-border rounded-lg p-2 sm:p-2.5 shadow-sm flex-shrink-0">
-              <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-ide-border text-[11px]">
-                <span className="font-mono text-slate-300 font-semibold uppercase tracking-wider text-[10px] sm:text-[11px] flex items-center gap-1.5">
-                  <Cpu size={12} className="text-[#7fa1c4]" /> Compilation & Execution Pipeline
-                </span>
-                <span className="text-[10px] text-slate-400 font-mono hidden md:inline">
-                  Click any stage to inspect intermediate representation (IR)
-                </span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2">
-                {[
-                  {
-                    id: "tokens",
-                    step: "1. Lexer",
-                    detail: "Flex Scanner",
-                    badge: response?.tokens ? `${response.tokens.length} tokens` : "Idle",
-                    active: activeTab === "tokens",
-                    accent: "text-[#6ea8a3]",
-                    border: "border-[#2b4247]",
-                    passed: Boolean(response?.tokens)
-                  },
-                  {
-                    id: "ast",
-                    step: "2. Parser",
-                    detail: "Bison LALR(1)",
-                    badge: response?.ast ? "AST Built" : "Idle",
-                    active: activeTab === "ast",
-                    accent: "text-[#9b8cb8]",
-                    border: "border-[#3d3251]",
-                    passed: Boolean(response?.ast)
-                  },
-                  {
-                    id: "semantic",
-                    step: "3. Semantics",
-                    detail: "Type & Scope",
-                    badge: response?.semantic?.isValid ? "Valid" : response?.semantic ? "Error" : "Idle",
-                    active: activeTab === "semantic",
-                    accent: response?.semantic?.isValid ? "text-[#72b192]" : response?.semantic ? "text-[#d47878]" : "text-slate-400",
-                    border: "border-[#2e4236]",
-                    passed: Boolean(response?.semantic?.isValid)
-                  },
-                  {
-                    id: "optimizer",
-                    step: "4. Optimizer",
-                    detail: "AST Rewriter",
-                    badge: response?.optimizations ? `${response.optimizations.length} passes` : "Idle",
-                    active: activeTab === "optimizer",
-                    accent: "text-[#cfa058]",
-                    border: "border-[#4a3920]",
-                    passed: Boolean(response?.optimizations)
-                  },
-                  {
-                    id: "plan",
-                    step: "5. Physical Plan",
-                    detail: "Volcano Iterators",
-                    badge: response?.physicalPlan ? "Constructed" : "Idle",
-                    active: activeTab === "plan",
-                    accent: "text-[#7fa1c4]",
-                    border: "border-[#2d3f57]",
-                    passed: Boolean(response?.physicalPlan)
-                  },
-                  {
-                    id: "results",
-                    step: "6. Executor",
-                    detail: "Table Output",
-                    badge: response?.results?.rows ? `${response.results.rows.length} rows` : "Idle",
-                    active: activeTab === "results",
-                    accent: "text-[#72b192]",
-                    border: "border-[#284236]",
-                    passed: Boolean(response?.results?.rows)
-                  }
-                ].map((s) => {
-                  return (
-                    <button
-                      key={s.id}
-                      onClick={() => switchActiveTab(s.id as any)}
-                      className={`text-left p-1.5 sm:p-2 rounded-md border transition-all select-none ${
-                        s.active
-                          ? `bg-[#182333] border-[#415a7d] shadow-sm ring-1 ring-[#415a7d]/50`
-                          : "bg-ide-bg/80 border-ide-border hover:bg-ide-surface hover:border-slate-700"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className={`text-[11px] font-semibold font-mono ${s.active ? s.accent : "text-slate-200"}`}>
-                          {s.step}
-                        </span>
-                        {s.passed && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#72b192] inline-block shadow-sm"></span>
-                        )}
-                      </div>
-                      <div className="text-[10px] text-slate-400 truncate mb-0.5">
-                        {s.detail}
-                      </div>
-                      <div className="inline-block text-[9px] font-mono px-1 py-0.1 rounded bg-ide-surface border border-ide-border text-slate-300">
-                        {s.badge}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
+            {/* Error Banner (Clean, actionable diagnostic card) */}
             {response && !response.success && (
-              <div className="bg-[#241a1c] border border-[#523337] rounded-lg p-3 text-xs font-mono text-[#d49b9b] flex items-start gap-2.5 shadow-md flex-shrink-0">
-                <AlertTriangle size={16} className="text-[#d47878] mt-0.5 flex-shrink-0" />
-                <div className="space-y-1.5 flex-1">
-                  <div className="font-bold text-[#e0a6a6] text-xs tracking-wide flex items-center gap-2">
+              <div className="bg-red-950/30 border border-red-800/60 rounded-lg p-3.5 text-xs font-mono text-red-200 flex items-start gap-3 shadow-sm flex-shrink-0">
+                <AlertTriangle size={16} className="text-status-error mt-0.5 flex-shrink-0" />
+                <div className="space-y-2 flex-1">
+                  <div className="font-semibold text-red-300 text-xs flex items-center gap-2">
                     <span>Compilation Error [{response.stage || "Pipeline"}]</span>
                     {response.line ? (
-                      <span className="text-[11px] font-normal text-[#d49b9b] bg-[#332023] px-2 py-0.2 rounded-full border border-[#5c373c]">
+                      <span className="text-[11px] font-normal text-red-300 bg-red-950/60 px-2 py-0.5 rounded border border-red-800/70">
                         Line {response.line}, Col {response.col}
                       </span>
                     ) : null}
                   </div>
-                  <div className="text-slate-200 leading-relaxed whitespace-pre-wrap text-xs bg-[#1d1516] p-2.5 rounded border border-[#3f272a]">
-                    {response.error}
+                  <div className="text-slate-200 leading-relaxed whitespace-pre-wrap text-xs bg-ide-bg/80 p-2.5 rounded border border-ide-border">
+                    {response.error || "An unknown compilation error occurred."}
                   </div>
-                  <div className="bg-[#1b1c24] border border-[#333a4c] rounded p-2 text-slate-200 text-xs">
-                    <div className="font-semibold text-[#8ea8c9] flex items-center gap-1.5 mb-0.5 font-sans text-[11px]">
-                      <span>💡 How to Fix:</span>
+                  <div className="bg-ide-panel/80 border border-ide-border rounded p-2.5 text-slate-300 text-xs font-sans">
+                    <div className="font-semibold text-white flex items-center gap-1.5 mb-1 text-[11px]">
+                      <span>How to resolve:</span>
                     </div>
-                    <p className="text-slate-300 font-sans text-xs leading-relaxed">
-                      {response.error.toLowerCase().includes("group by") || response.error.toLowerCase().includes("ungrouped")
-                        ? "In aggregate queries with GROUP BY, every column in the SELECT list that is not part of an aggregate function (COUNT, AVG, SUM, MIN, MAX) must be explicitly included in the GROUP BY clause."
-                        : response.error.toLowerCase().includes("unknown column") || response.error.toLowerCase().includes("not found")
-                        ? "The requested field does not exist in the logs schema. Click on any field name in the left sidebar to insert valid fields (e.g., timestamp, service, level, status, response_time, path, ip, message)."
-                        : response.error.toLowerCase().includes("syntax") || response.error.toLowerCase().includes("unexpected")
-                        ? "Verify that all columns are separated by commas, string literals are enclosed in quotes (e.g. 'auth-service'), clauses follow standard order (SELECT ... FROM ... WHERE ... GROUP BY ... ORDER BY ... LIMIT ...), and the statement ends with a semicolon."
-                        : "Check the Grammar Cheatsheet in the left sidebar or the Documentation page for valid syntax examples and rules."}
+                    <p className="text-ide-muted leading-relaxed">
+                      {errorText.includes("group by") || errorText.includes("ungrouped")
+                        ? "In aggregate queries with GROUP BY, every column in the SELECT list that is not inside an aggregate function (COUNT, AVG, SUM, MIN, MAX) must be explicitly listed in the GROUP BY clause."
+                        : errorText.includes("unknown column") || errorText.includes("not found")
+                        ? "The requested column does not exist. Click on any field name in the left sidebar to insert valid schema attributes (e.g. timestamp, service, level, status, response_time, path, ip, message)."
+                        : errorText.includes("syntax") || errorText.includes("unexpected")
+                        ? "Check that all columns are separated by commas, string literals are enclosed in quotes (e.g. 'auth-service'), clauses follow standard order (SELECT ... FROM ... WHERE ... GROUP BY ... ORDER BY ... LIMIT ...), and the statement ends with a semicolon."
+                        : "Check the Syntax Cheatsheet in the left sidebar or the Documentation page for grammar specifications and valid query examples."}
                     </p>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="bg-ide-panel border border-ide-border rounded-xl flex flex-col flex-1 min-h-[300px] shadow-lg overflow-hidden">
-              <div className="bg-ide-sidebar border-b border-ide-border px-3 flex items-center justify-between overflow-x-auto flex-shrink-0">
-                <div className="flex items-center gap-0.5">
+            {/* Results & Compiler Stages Tabbed Container */}
+            <div className="bg-ide-panel border border-ide-border rounded-lg flex flex-col flex-1 min-h-[340px] shadow-sm overflow-hidden">
+              {/* Unified Tab Navigation Bar */}
+              <div className="bg-ide-surface/70 border-b border-ide-border px-3 flex items-center justify-between overflow-x-auto flex-shrink-0">
+                <div className="flex items-center gap-1 py-1">
                   {tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
                     return (
                       <button
                         key={tab.id}
-                        onClick={() => switchActiveTab(tab.id as any)}
-                        className={`flex items-center gap-1.5 px-3 py-2 text-xs font-mono border-b-2 transition select-none ${
+                        onClick={() => switchActiveTab(tab.id)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition select-none ${
                           isActive
-                            ? "border-[#577b9f] text-slate-100 bg-ide-panel font-semibold shadow-sm"
-                            : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-ide-hover/50"
+                            ? "bg-ide-panel text-white shadow-sm font-semibold border border-ide-border"
+                            : "text-ide-muted hover:text-white hover:bg-ide-surface"
                         }`}
                       >
-                        <span className={isActive ? tab.color : "text-slate-400"}>{tab.icon}</span>
+                        <span className={isActive ? "text-emerald-400" : "text-ide-subtle"}>
+                          {tab.icon}
+                        </span>
                         <span>{tab.label}</span>
                         {tab.badge && (
                           <span
-                            className={`text-[9px] px-1.5 py-0.2 rounded-full font-semibold ${
+                            className={`text-[10px] font-mono px-1.5 py-0.2 rounded font-medium ${
                               isActive
-                                ? "bg-[#1c2738] text-[#8ea8c9] border border-[#2e405a]"
-                                : "bg-ide-surface text-slate-400 border border-ide-border"
+                                ? "bg-ide-surface text-ide-text border border-ide-borderLight"
+                                : "bg-ide-bg text-ide-subtle"
                             }`}
                           >
                             {tab.badge}
@@ -532,20 +432,24 @@ export default function StudioPage() {
                   })}
                 </div>
 
+                {/* Status indicator on the right of tabs */}
                 {response && response.success && response.results && (
-                  <div className="hidden sm:flex items-center gap-2.5 text-xs font-mono text-slate-400 pr-2">
-                    <span className="flex items-center gap-1 text-[#72b192] font-medium text-[11px]">
-                      <CheckCircle2 size={12} /> Pipeline Success
+                  <div className="hidden sm:flex items-center gap-2.5 text-xs font-mono text-ide-muted pr-1">
+                    <span className="flex items-center gap-1 text-emerald-400 font-medium text-[11px]">
+                      <CheckCircle2 size={12} /> Success
                     </span>
-                    <span>&bull;</span>
-                    <span className="text-[11px]">{response.results.rows.length} rows</span>
-                    <span>&bull;</span>
-                    <span className="text-slate-300 font-semibold text-[11px]">{response.results.metrics?.executionTimeMs?.toFixed(3) || "0.200"} ms</span>
+                    <span className="text-ide-subtle">&bull;</span>
+                    <span className="text-[11px] text-ide-text">{response.results.rows.length} rows</span>
+                    <span className="text-ide-subtle">&bull;</span>
+                    <span className="text-ide-text font-medium text-[11px]">
+                      {response.results.metrics?.executionTimeMs?.toFixed(3) || "0.200"} ms
+                    </span>
                   </div>
                 )}
               </div>
 
-              <div className="p-3 sm:p-3.5 flex-1 min-h-0 overflow-y-auto bg-ide-panel/80">
+              {/* Active Tab Content Pane */}
+              <div className="p-3 sm:p-4 flex-1 min-h-0 overflow-y-auto bg-ide-panel">
                 {activeTab === "results" && <ResultsTable results={response?.results} />}
                 {activeTab === "tokens" && <TokenViewer tokens={response?.tokens} />}
                 {activeTab === "ast" && <AstViewer ast={response?.ast} />}
@@ -565,6 +469,7 @@ export default function StudioPage() {
         </main>
       </div>
 
+      {/* Dataset Ingestion Modal */}
       <UploadModal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
